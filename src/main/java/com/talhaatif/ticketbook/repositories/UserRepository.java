@@ -2,7 +2,7 @@ package com.talhaatif.ticketbook.repositories;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import  com.talhaatif.ticketbook.entities.User;
+import com.talhaatif.ticketbook.entities.user.User;
 import java.util.Optional;
 
 public interface UserRepository extends MongoRepository<User, ObjectId> {

@@ -1,4 +1,4 @@
-package com.talhaatif.ticketbook.entities;
+package com.talhaatif.ticketbook.entities.bookings;
 
 public enum BookingStatus {
     PENDING,

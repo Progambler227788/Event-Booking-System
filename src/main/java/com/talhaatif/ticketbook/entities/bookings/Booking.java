@@ -1,5 +1,6 @@
-package com.talhaatif.ticketbook.entities;
+package com.talhaatif.ticketbook.entities.bookings;
 
+import com.talhaatif.ticketbook.entities.payments.Payment;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

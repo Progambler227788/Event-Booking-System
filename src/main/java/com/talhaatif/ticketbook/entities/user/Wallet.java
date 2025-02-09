@@ -1,4 +1,4 @@
-package com.talhaatif.ticketbook.entities;
+package com.talhaatif.ticketbook.entities.user;
 
 import lombok.*;
 

@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: ticketbook
+  data:
+    mongodb:
+      uri: ${MONGO_URI}
+      database: ticketdb
+      auto-index-creation: true
+  config:
+    import: optional:file:.env[.properties]
+secret:
+  key:
+      ${SECRET_KEY}

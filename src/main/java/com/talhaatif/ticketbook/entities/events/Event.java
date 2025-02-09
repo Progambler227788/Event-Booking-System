@@ -1,4 +1,4 @@
-package com.talhaatif.ticketbook.entities;
+package com.talhaatif.ticketbook.entities.events;
 
 import org.springframework.data.annotation.Id;
 
@@ -17,6 +17,7 @@ public class Event {
     @Id
     private String id;
     private String title;
+    private String description;
     private Category category; // ENUM: MOVIE, CONCERT, SPORTS, FLIGHT
     private String location;
     private Date dateTime;

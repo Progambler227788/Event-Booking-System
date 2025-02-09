@@ -1,4 +1,4 @@
-package com.talhaatif.ticketbook.entities;
+package com.talhaatif.ticketbook.entities.payments;
 
 
 import  lombok.*;
@@ -16,5 +16,6 @@ public class Payment {
     private String method; // ENUM: CARD, PAYPAL, WALLET
     private PaymentStatus status; // ENUM: SUCCESS, FAILED, PENDING
     private Date timestamp;
+    private String userId;
 }
 

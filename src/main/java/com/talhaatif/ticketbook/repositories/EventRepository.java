@@ -1,7 +1,7 @@
 package com.talhaatif.ticketbook.repositories;
 
-import com.talhaatif.ticketbook.entities.Category;
-import com.talhaatif.ticketbook.entities.Event;
+import com.talhaatif.ticketbook.entities.events.Category;
+import com.talhaatif.ticketbook.entities.events.Event;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

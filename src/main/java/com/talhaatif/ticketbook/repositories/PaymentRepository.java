@@ -1,6 +1,6 @@
 package com.talhaatif.ticketbook.repositories;
 
-import com.talhaatif.ticketbook.entities.Payment;
+import com.talhaatif.ticketbook.entities.payments.Payment;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
