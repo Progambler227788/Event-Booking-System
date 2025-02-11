@@ -26,14 +26,16 @@ public class JwtUtil {
     }
 
     // Generate token using username instead of email
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username) // Now using username
+                .claim("role", role ) // Include role as claim
                 .setIssuedAt(new Date()) // issue time, creation time
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     //  Extract username from token
     public String extractUserName(String token) {

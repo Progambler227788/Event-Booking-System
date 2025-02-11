@@ -7,7 +7,7 @@ import java.util.List;
 import  lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "users")
+@Document(collection = "events")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,4 +24,5 @@ public class Event {
     private List<Seat> seats;
     private double basePrice;
     private double rating;
+    private int totalSeats;
 }

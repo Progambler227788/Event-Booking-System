@@ -2,11 +2,13 @@ package com.talhaatif.ticketbook.services;
 
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
+import com.talhaatif.ticketbook.entities.events.Seat;
 import com.talhaatif.ticketbook.exceptions.ResourceMissingException;
 import com.talhaatif.ticketbook.repositories.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,37 +16,44 @@ import java.util.List;
 public class EventService {
     private final EventRepository eventRepository;
 
-    //  Get Event by ID
+    // 🔹 Get Event by ID
     public Event getEventById(String id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceMissingException("Event not found with ID: " + id));
     }
 
-    // Create New Event
+
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll();
+    }
+
+    // ✅ Create New Event (Admin Only)
     public Event createEvent(Event event) {
+        // Initialize Seats
+        List<Seat> seats = new ArrayList<>();
+        for (int i = 1; i <= event.getTotalSeats(); i++) {
+            seats.add(new Seat("Seat-" + i, true, 100.0));
+        }
+        event.setSeats(seats);
+
         return eventRepository.save(event);
     }
 
-    // Get Events by Category
+    // 🔎 Get Events by Category
     public List<Event> getEventsByCategory(Category category) {
         return eventRepository.findByCategory(category);
     }
 
-    // Update Event
+    // ✏️ Update Event
     public Event updateEvent(String id, Event updatedEvent) {
-        //
         Event event = getEventById(id);
-        if(!event.getTitle().equalsIgnoreCase(updatedEvent.getTitle())){
-            event.setTitle(updatedEvent.getTitle());
-        }
-        if(!event.getLocation().equalsIgnoreCase(updatedEvent.getLocation())){
-            event.setLocation(updatedEvent.getLocation());
-        }
-
+        event.setTitle(updatedEvent.getTitle());
+        event.setLocation(updatedEvent.getLocation());
+        event.setBasePrice(updatedEvent.getBasePrice());
         return eventRepository.save(event);
     }
 
-    // Delete Event
+    // ❌ Delete Event
     public void deleteEvent(String id) {
         Event event = getEventById(id);
         eventRepository.delete(event);
