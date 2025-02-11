@@ -20,6 +20,9 @@ public class UserService {
     @Autowired
     private  UserRepository userRepository;
 
+    @Autowired
+    private BookingService bookingService;
+
    // for Encrypting user password
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -63,6 +66,13 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public void bookTickets(String userId, String eventId, int totalTickets){
+
+
+        bookingService.bookSeats(userId, eventId, totalTickets);
+
+    }
+
     public Optional<User> getUserById(ObjectId id){
         return  userRepository.findById(id);
     }
@@ -77,6 +87,11 @@ public class UserService {
 
     public User findByUserName(String userName){
         return userRepository.findByUserName(userName);
+    }
+
+    public String getUserIdByUserName(String userName) {
+        User user = userRepository.findByUserName(userName);
+        return user != null ? user.getId() : null;
     }
 
 

@@ -1,60 +1,77 @@
 package com.talhaatif.ticketbook.controllers;
 
-import com.talhaatif.ticketbook.dto.SignupRequest;
-import com.talhaatif.ticketbook.entities.user.User;
-import com.talhaatif.ticketbook.security.JwtUtil;
-import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;
+import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.services.UserService;
+import com.talhaatif.ticketbook.services.BookingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/user/profile") // base url
-@Slf4j // log purpose
-
-// @RequestMapping is an annotation in Spring Boot
-// that is used to map HTTP requests to specific controller classes or methods.
-// base url and then endpoints
+@RequestMapping("/api/user/profile") // Base URL
+@Slf4j // Logging
 public class UserController {
 
     private final UserService userService;
-    private  final UserDetailsServiceImpl userDetailsService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+    private final BookingService bookingService;
 
-    // Constructor-based dependency injection (Best practice)
-    public UserController(UserService userService, UserDetailsServiceImpl userDetailsService,
-                          AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    public UserController(UserService userService, BookingService bookingService) {
         this.userService = userService;
-        this.userDetailsService = userDetailsService;
-        this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
+        this.bookingService = bookingService;
     }
 
-    // End points for get, post, delete and put
+    // ✅ Book Ticket (No try-catch needed since exceptions are handled globally)
+    @PostMapping("/bookTicket")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> bookTicket(@RequestParam String eventId,
+                                                          @RequestParam int totalTickets) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
 
-
-
-// why login call is post call??
-    // User Login
-
-    // Global Exception Handling for Better Code Structure
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleException(Exception e) {
-        return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        userService.bookTickets(userId, eventId, totalTickets);
+        return ResponseEntity.ok(Map.of("message", "Ticket booked successfully"));
     }
 
-    // alternative of below method @RequestMapping(value = "/profile", method = RequestMethod.GET)
+    // ✅ Cancel Ticket
+    @DeleteMapping("/cancelTicket")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> cancelTicket(@RequestParam String bookingId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
 
+        Booking booking = bookingService.getBookingById(bookingId); // 🔥 If not found, exception is auto-handled globally
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new SecurityException("You are not authorized to cancel this booking"); // 🔥 Auto-handled
+        }
+
+        bookingService.cancelBooking(bookingId);
+        return ResponseEntity.ok(Map.of("message", "Booking canceled successfully"));
+    }
+
+    // ✅ Get All Bookings of a User
+    @GetMapping("/getBookings")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> getUserBookingsByUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+
+        return ResponseEntity.ok(bookingService.getBookingsByUser(userId));
+    }
+
+    // ✅ Test User Profile
     @GetMapping("/user/hello")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public String userProfile() {
         return "Welcome to User Profile";
     }
-
-
 }

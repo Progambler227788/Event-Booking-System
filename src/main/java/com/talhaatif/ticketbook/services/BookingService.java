@@ -64,6 +64,15 @@ public class BookingService {
         return bookingRepository.findByUserId(userId);
     }
 
+
+
+    public Booking getBookingById(String bookingId){
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceMissingException("Booking not found with ID: " + bookingId));
+
+        return booking;
+    }
+
     // ✅ Confirm Booking (after payment)
     public Booking confirmBooking(String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
