@@ -26,6 +26,8 @@ public class UserController {
         this.bookingService = bookingService;
     }
 
+    // --------------------Booking Section---------------------------------
+
     // ✅ Book Ticket (No try-catch needed since exceptions are handled globally)
     @PostMapping("/bookTicket")
     @PreAuthorize("hasAuthority('ROLE_USER')")
@@ -74,4 +76,28 @@ public class UserController {
     public String userProfile() {
         return "Welcome to User Profile";
     }
+
+    // --------------------Wallet Section--------------------
+    @PostMapping("/wallet/addBalance")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> addBalance(@RequestParam double balance){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+
+        userService.addBalance(userId,balance);
+        return ResponseEntity.ok(Map.of("message", "Balance Added in User account"));
+    }
+
+    @PostMapping("/wallet/deductBalance")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> deductBalance(@RequestParam double balance){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+
+        userService.deductBalance(userId,balance);
+        return ResponseEntity.ok(Map.of("message", "Balance deducted from User account"));
+    }
+
 }

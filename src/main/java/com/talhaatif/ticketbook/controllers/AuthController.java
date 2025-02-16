@@ -40,14 +40,17 @@ public class AuthController {
         log.info("Authentication request received for user: {}", authRequest.getUserName());
 
         try {
+            // Spring Security internally checks if the username (john_doe) and password (password123) are
+            // valid by comparing them against the database or in-memory user details.
+            // Creates an object of -> UsernamePasswordAuthenticationToken
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getUserName(), authRequest.getPassword())
             );
 
             log.info("Authentication successful for user: {}", authRequest.getUserName());
-
+        // if user is authenticated extract its details
             if (authentication.isAuthenticated()) {
-                // 🔹 Get user details
+                // 🔹 Get user details that has role as well
                 UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
                 // 🔹 Extract role

@@ -94,5 +94,33 @@ public class UserService {
         return user != null ? user.getId() : null;
     }
 
+    // ---------------Wallet section
+
+
+
+    public void addBalance(String userId, double amount) {
+        User user = userRepository.findById(new ObjectId(userId))  // Convert String to ObjectId
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.getWallet().setBalance(user.getWallet().getBalance() + amount);
+        userRepository.save(user);
+    }
+
+
+    public void deductBalance(String userId, double amount) {
+        User user = userRepository.findById(new ObjectId(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getWallet().getBalance() < amount) {
+            throw new IllegalArgumentException("Insufficient balance");
+        }
+
+        user.getWallet().setBalance(user.getWallet().getBalance() - amount);
+        userRepository.save(user);
+    }
+
+
+
+
 
 }
