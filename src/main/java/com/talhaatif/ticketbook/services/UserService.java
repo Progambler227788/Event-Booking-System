@@ -1,5 +1,7 @@
 package com.talhaatif.ticketbook.services;
 
+import com.talhaatif.ticketbook.dto.UserBalance;
+import com.talhaatif.ticketbook.entities.user.Wallet;
 import com.talhaatif.ticketbook.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -30,6 +32,10 @@ public class UserService {
         try {
             object.setPassword(passwordEncoder.encode(object.getPassword()));
             object.setRole(Arrays.asList("USER"));
+
+            if (object.getWallet() == null) {
+                object.setWallet(new Wallet(0.0, "USD"));  // Default values (change as needed)
+            }
             userRepository.save(object);
         }
 
@@ -38,7 +44,7 @@ public class UserService {
             // for debug and trace we need customization
             // if we use sl4j annotation then use log object
 //            logger.info("Error occurred in saving user with user-name --> {}", object.getUserName(), e);
-            log.info("Error occurred in saving user with user-name --> {}", object.getUsername(), e);
+            log.error("Error occurred in saving user with user-name --> {}", object.getUsername(), e);
         }
     }
 
@@ -97,10 +103,28 @@ public class UserService {
     // ---------------Wallet section
 
 
+    public UserBalance getBalance(String userId) {
+        User user = userRepository.findById(new ObjectId(userId))  // Convert String to ObjectId
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        UserBalance object = new UserBalance();
+        object.setBalance(user.getWallet().getBalance());
+        object.setCurrencyType(user.getWallet().getCurrencyType());
+        object.setUserName(user.getUsername());
+
+        return object;
+
+    }
+
+
 
     public void addBalance(String userId, double amount) {
         User user = userRepository.findById(new ObjectId(userId))  // Convert String to ObjectId
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getWallet() == null) {
+            user.setWallet(new Wallet(0.0, "PKR"));
+        }
 
         user.getWallet().setBalance(user.getWallet().getBalance() + amount);
         userRepository.save(user);
@@ -117,6 +141,21 @@ public class UserService {
 
         user.getWallet().setBalance(user.getWallet().getBalance() - amount);
         userRepository.save(user);
+    }
+
+    public void updateCurrencyType(String userId, String currencyType) {
+        User user = userRepository.findById(new ObjectId(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getWallet() == null) {
+            user.setWallet(new Wallet(0.0, currencyType));
+        }
+        // if currency is not same then save else do nothing
+        if (!currencyType.equalsIgnoreCase(user.getWallet().getCurrencyType())) {
+            user.getWallet().setCurrencyType(currencyType);
+            userRepository.save(user);
+        }
+
     }
 
 

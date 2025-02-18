@@ -100,4 +100,23 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Balance deducted from User account"));
     }
 
+    @GetMapping("/wallet/getUserBalance")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> getUserBalance() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+        return ResponseEntity.ok(userService.getBalance(userId));
+    }
+
+    @PutMapping("/wallet/updateCurrency")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> deductBalance(@RequestParam String currencyType){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+        userService.updateCurrencyType(userId,currencyType);
+        return ResponseEntity.ok(Map.of("message", "Currency updated for User account"));
+    }
+
 }
