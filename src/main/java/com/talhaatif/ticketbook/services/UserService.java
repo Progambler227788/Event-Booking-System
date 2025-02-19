@@ -1,8 +1,10 @@
 package com.talhaatif.ticketbook.services;
 
 import com.talhaatif.ticketbook.dto.UserBalance;
+import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.user.Wallet;
 import com.talhaatif.ticketbook.repositories.UserRepository;
+import com.talhaatif.ticketbook.security.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +27,35 @@ public class UserService {
     @Autowired
     private BookingService bookingService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
    // for Encrypting user password
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+
+
+
+    // Ticket Section
+    public void bookTickets(String userId, String eventId, int totalTickets){
+
+
+        bookingService.bookSeats(userId, eventId, totalTickets);
+
+    }
+
+    public void cancelBooking(String userId, String bookingId){
+        Booking booking = bookingService.getBookingById(bookingId); // 🔥 If not found, exception is auto-handled globally
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new SecurityException("You are not authorized to cancel this booking"); // 🔥 Auto-handled
+        }
+
+        bookingService.cancelBooking(bookingId);
+
+    }
+
+    // User section
 
     public void saveNewUser(User object){
         try {
@@ -72,12 +101,36 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public void bookTickets(String userId, String eventId, int totalTickets){
+    public String updateUserProfile(String userId, User updatedUser) {
+        User existingUser = userRepository.findById(new ObjectId(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Only update fields that are not null (to avoid overwriting existing data)
+        boolean credentialsChanged= false;
+        if (updatedUser.getUsername() != null) {
+            existingUser.setUserName(updatedUser.getUsername());
+            credentialsChanged=true;
+        }
+        if (updatedUser.getEmail() != null) {
+            existingUser.setEmail(updatedUser.getEmail());
+            credentialsChanged=true;
+        }
+
+        if (updatedUser.getPhoneNumber() != null)
+            existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
 
 
-        bookingService.bookSeats(userId, eventId, totalTickets);
 
+        userRepository.save(existingUser);
+
+        // Regenerate new token
+
+        if(credentialsChanged){
+           return jwtUtil.generateToken(existingUser.getUsername(),existingUser.getRole().get(0));
+        }
+        return "";
     }
+
 
     public Optional<User> getUserById(ObjectId id){
         return  userRepository.findById(id);

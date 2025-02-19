@@ -7,6 +7,8 @@ import com.talhaatif.ticketbook.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -92,5 +95,22 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of("message", "User registered successfully!"));
     }
+
+    @PutMapping("/updateProfile")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> updateProfile(@RequestBody User updatedUser) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+
+        String jwtNewToken = userService.updateUserProfile(userId, updatedUser);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "User profile updated successfully");
+        if (jwtNewToken !=null && !jwtNewToken .isEmpty() ){
+            response.put("JWT TOKEN",jwtNewToken);
+        }
+        return ResponseEntity.ok(response);
+    }
+
 }
 

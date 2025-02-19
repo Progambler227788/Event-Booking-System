@@ -49,13 +49,9 @@ public class UserController {
         String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
         String userId = userService.getUserIdByUserName(authenticatedUserName);
 
-        Booking booking = bookingService.getBookingById(bookingId); // 🔥 If not found, exception is auto-handled globally
 
-        if (!booking.getUserId().equals(userId)) {
-            throw new SecurityException("You are not authorized to cancel this booking"); // 🔥 Auto-handled
-        }
+        userService.cancelBooking(userId, bookingId);
 
-        bookingService.cancelBooking(bookingId);
         return ResponseEntity.ok(Map.of("message", "Booking canceled successfully"));
     }
 
