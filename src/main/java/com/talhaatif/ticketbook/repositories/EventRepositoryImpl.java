@@ -14,9 +14,6 @@ public class EventRepositoryImpl {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @Autowired
-    private  EventRepository eventRepository;
-
     public List<Event> searchEventsByLocation(String location) {
         if (location == null || location.trim().isEmpty()) {
             throw new IllegalArgumentException("Location cannot be empty");
