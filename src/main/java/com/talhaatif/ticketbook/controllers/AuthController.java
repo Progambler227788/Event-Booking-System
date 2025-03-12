@@ -6,6 +6,7 @@ import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;
 import com.talhaatif.ticketbook.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,20 +30,26 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
+
 // @RequestMapping is an annotation in Spring Boot
 // that is used to map HTTP requests to specific controller classes or methods.
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
+
     private final JwtUtil jwtUtil;
+
     private final UserService userService;
-    private  final UserDetailsServiceImpl userDetailsService;
+
+    private final UserDetailsServiceImpl userDetailsService;
     @PostMapping("/generateToken")
-    public String authenticateAndGetToken(@RequestBody LoginRequest authRequest) {
+
+    public ResponseEntity<String> authenticateAndGetToken(@RequestBody LoginRequest authRequest) {
 
         log.info("Authentication request received for user: {}", authRequest.getUserName());
 
         try {
+            // It will user UserDetailsServiceImpl --> loadUserName, encodePassword
             // Spring Security internally checks if the username (john_doe) and password (password123) are
             // valid by comparing them against the database or in-memory user details.
             // Creates an object of -> UsernamePasswordAuthenticationToken
@@ -66,14 +73,14 @@ public class AuthController {
                 // 🔹 Generate token
                 String token = jwtUtil.generateToken(authRequest.getUserName(), role);
                 log.info("Generated JWT token for user: {} with role: {}", authRequest.getUserName(), role);
-                return token;
+                return ResponseEntity.ok(token);
             } else {
                 log.warn("Authentication failed for user: {}", authRequest.getUserName());
-                throw new UsernameNotFoundException("Invalid user request!");
+                return ResponseEntity.badRequest().body("Invalid user request");
             }
         } catch (Exception e) {
             log.error("Authentication error for user: {} - {}", authRequest.getUserName(), e.getMessage());
-            throw new UsernameNotFoundException("Invalid user request!", e);
+            return ResponseEntity.badRequest().body("Authentication error for user");
         }
     }
 

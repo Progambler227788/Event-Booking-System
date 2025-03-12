@@ -1,8 +1,10 @@
 package com.talhaatif.ticketbook.controllers;
 
 import com.talhaatif.ticketbook.entities.bookings.Booking;
+import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
 import com.talhaatif.ticketbook.services.UserService;
 import com.talhaatif.ticketbook.services.BookingService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,10 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/user/profile") // Base URL
+@RequestMapping("/api/user/profile")// Base URL
 @Slf4j // Logging
 public class UserController {
 
@@ -32,12 +35,12 @@ public class UserController {
     @PostMapping("/bookTicket")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Map<String, String>> bookTicket(@RequestParam String eventId,
-                                                          @RequestParam int totalTickets) {
+                                                          @RequestParam int totalTickets,@RequestParam String paymentMethod) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
         String userId = userService.getUserIdByUserName(authenticatedUserName);
 
-        userService.bookTickets(userId, eventId, totalTickets);
+        userService.bookTickets(userId, eventId, totalTickets, paymentMethod);
         return ResponseEntity.ok(Map.of("message", "Ticket booked successfully"));
     }
 
@@ -65,6 +68,29 @@ public class UserController {
 
         return ResponseEntity.ok(bookingService.getBookingsByUser(userId));
     }
+
+
+    @GetMapping("/filter")
+    public ResponseEntity<?> filterBookings(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BookingStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+
+        List<Booking> filteredBookings = userService.filterBookingsByUserId(month, year, status, page, size, userId);
+        return ResponseEntity.ok(filteredBookings);
+    }
+
+
+
+
+
 
     // ✅ Test User Profile
     @GetMapping("/user/hello")

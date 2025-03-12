@@ -6,11 +6,10 @@ import java.util.Date;
 import java.util.List;
 import  lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 @Document(collection = "events")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 @Builder
 public class Event {
 
@@ -24,5 +23,6 @@ public class Event {
     private List<Seat> seats;
     private double basePrice;
     private double rating;
-    private int totalSeats;
+    private int totalSeats; //  this field has getter and setter
+
 }

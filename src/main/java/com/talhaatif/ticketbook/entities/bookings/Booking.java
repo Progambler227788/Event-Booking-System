@@ -26,3 +26,9 @@ public class Booking {
 }
 
 // how to handle if user book all seats for particular event
+
+// Booking has id, userId, eventId, Seats List, BookingStatus variable, Payment object, Date createdAt
+
+// filter by month and year, filter by category, filter by status
+
+// like year == 2024 and month January

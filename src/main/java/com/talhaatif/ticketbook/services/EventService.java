@@ -6,15 +6,18 @@ import com.talhaatif.ticketbook.entities.events.Seat;
 import com.talhaatif.ticketbook.exceptions.ResourceMissingException;
 import com.talhaatif.ticketbook.repositories.EventRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+// eventId129
 @Service
-@RequiredArgsConstructor
 public class EventService {
-    private final EventRepository eventRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
 
     // 🔹 Get Event by ID
     public Event getEventById(String id) {
@@ -57,5 +60,10 @@ public class EventService {
     public void deleteEvent(String id) {
         Event event = getEventById(id);
         eventRepository.delete(event);
+    }
+
+   //  ❌ Delete all events
+    public void deleteAllEvent() {
+        eventRepository.deleteAll();
     }
 }

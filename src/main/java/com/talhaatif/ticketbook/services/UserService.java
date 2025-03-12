@@ -2,6 +2,7 @@ package com.talhaatif.ticketbook.services;
 
 import com.talhaatif.ticketbook.dto.UserBalance;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
+import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
 import com.talhaatif.ticketbook.entities.user.Wallet;
 import com.talhaatif.ticketbook.repositories.UserRepository;
 import com.talhaatif.ticketbook.security.JwtUtil;
@@ -36,11 +37,11 @@ public class UserService {
 
 
 
-    // Ticket Section
-    public void bookTickets(String userId, String eventId, int totalTickets){
+    //--------------- Ticket Section
+    public Booking bookTickets(String userId, String eventId, int totalTickets, String paymentMethod){
 
 
-        bookingService.bookSeats(userId, eventId, totalTickets);
+        return bookingService.bookSeats(userId, eventId, totalTickets,paymentMethod);
 
     }
 
@@ -55,7 +56,12 @@ public class UserService {
 
     }
 
-    // User section
+    public List<Booking> filterBookingsByUserId(Integer month, Integer year, BookingStatus status, int page, int size, String userId){
+        return  bookingService.filterBookingsByUserId(month, year, status, page, size, userId);
+    }
+
+
+    //----------------- User section
 
     public void saveNewUser(User object){
         try {

@@ -11,3 +11,9 @@ spring:
 secret:
   key:
       ${SECRET_KEY}
+stripe:
+  api:
+    key:
+      ${STRIPE_SECRET}
+  secret:
+         ${STRIPE_API}
