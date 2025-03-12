@@ -1,6 +1,8 @@
 spring:
   application:
     name: ticketbook
+  server:
+    port: ${SERVER_PORT}
   data:
     mongodb:
       uri: ${MONGO_URI}
@@ -9,11 +11,17 @@ spring:
   config:
     import: optional:file:.env[.properties]
 secret:
-  key:
-      ${SECRET_KEY}
+  key: ${SECRET_KEY}
 stripe:
   api:
-    key:
-      ${STRIPE_SECRET}
-  secret:
-         ${STRIPE_API}
+    key: ${STRIPE_SECRET}
+    secret:  ${STRIPE_API}
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enable: true
+  show-actuator: true
+  packages-to-scan: com.talhaatif.ticketbook.controllers
+

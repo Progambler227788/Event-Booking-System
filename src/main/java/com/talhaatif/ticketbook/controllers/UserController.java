@@ -35,12 +35,12 @@ public class UserController {
     @PostMapping("/bookTicket")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Map<String, String>> bookTicket(@RequestParam String eventId,
-                                                          @RequestParam int totalTickets,@RequestParam String paymentMethod) {
+                                                          @RequestParam List<String> seatNumbers,@RequestParam String paymentMethod) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
         String userId = userService.getUserIdByUserName(authenticatedUserName);
 
-        userService.bookTickets(userId, eventId, totalTickets, paymentMethod);
+        userService.bookTickets(userId, eventId, seatNumbers, paymentMethod);
         return ResponseEntity.ok(Map.of("message", "Ticket booked successfully"));
     }
 

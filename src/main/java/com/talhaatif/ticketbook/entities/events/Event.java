@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import java.util.Date;
 import java.util.List;
 import  lombok.*;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "events")
 @NoArgsConstructor
@@ -24,5 +25,8 @@ public class Event {
     private double basePrice;
     private double rating;
     private int totalSeats; //  this field has getter and setter
+
+    @Version  // This ensures Optimistic Locking works!
+    private Long version;
 
 }

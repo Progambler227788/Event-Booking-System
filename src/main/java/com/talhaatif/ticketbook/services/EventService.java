@@ -35,7 +35,7 @@ public class EventService {
         // Initialize Seats
         List<Seat> seats = new ArrayList<>();
         for (int i = 1; i <= event.getTotalSeats(); i++) {
-            seats.add(new Seat("Seat-" + i, true, 100.0));
+            seats.add(new Seat("Seat-" + i, true, 100.0,0L));
         }
         event.setSeats(seats);
 

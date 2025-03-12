@@ -1,5 +1,6 @@
 package com.talhaatif.ticketbook.security;
 
+import com.talhaatif.ticketbook.config.RateLimitingFilter;
 import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -37,6 +39,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtFilter authFilter;
+
+    @Autowired
+    private RateLimitingFilter rateLimitingFilter;
 
 
 
@@ -61,7 +66,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()  // Allow all auth routes
+                        .requestMatchers("/api/auth/**",
+                                "/v3/**", "/swagger-ui/**","/swagger/**","/webjars/**").permitAll()  // Allow all auth routes and swagger
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Restrict admin routes
                         .requestMatchers("/api/user/**").hasRole("USER")  // Restrict user routes
                         .anyRequest().authenticated() // Protect all other endpoints
@@ -69,8 +75,9 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions
                 )
-                .authenticationProvider(authenticationProvider()) // Custom authentication provider
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitingFilter, BasicAuthenticationFilter.class) // Add rate limit filter
+                .addFilterBefore(authFilter,  UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
         return http.build();
     }

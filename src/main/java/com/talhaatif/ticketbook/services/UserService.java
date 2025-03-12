@@ -38,10 +38,10 @@ public class UserService {
 
 
     //--------------- Ticket Section
-    public Booking bookTickets(String userId, String eventId, int totalTickets, String paymentMethod){
+    public Booking bookTickets(String userId, String eventId, List<String> seatNumbers, String paymentMethod){
 
 
-        return bookingService.bookSeats(userId, eventId, totalTickets,paymentMethod);
+        return bookingService.bookSeats(userId, eventId, seatNumbers,paymentMethod);
 
     }
 
