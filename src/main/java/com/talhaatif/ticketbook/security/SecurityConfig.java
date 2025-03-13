@@ -74,7 +74,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**",
-                                "/v3/**", "/swagger-ui/**","/swagger/**","/webjars/**","/tickojet/**").permitAll()  // Allow all auth routes and swagger
+                                "/v3/**", "/swagger-ui/**","/swagger/**","/webjars/**","/tickojet/**","/").permitAll()  // Allow all auth routes and swagger
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Restrict admin routes
                         .requestMatchers("/api/user/**").hasRole("USER")  // Restrict user routes
                         .anyRequest().authenticated() // Protect all other endpoints

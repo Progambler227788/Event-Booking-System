@@ -24,7 +24,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     // Define paths to exclude from rate limiting
     private static final Set<String> EXCLUDED_PATHS = Set.of(
-            "/v3/api-docs", "/swagger-ui", "/swagger", "/webjars","/tickojet"
+            "/v3/api-docs", "/swagger-ui", "/swagger", "/webjars","/tickojet", "/"
     );
 
     @Override
