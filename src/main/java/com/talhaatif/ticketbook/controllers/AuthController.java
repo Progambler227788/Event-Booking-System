@@ -102,7 +102,7 @@ public class AuthController {
         newUser.setPassword(signupRequest.getPassword());
 
         // Save user to DB
-        userService.saveAdminUser(newUser);
+        userService.saveNewUser(newUser);
 
         return ResponseEntity.ok(Map.of("message", "User registered successfully!"));
     }
