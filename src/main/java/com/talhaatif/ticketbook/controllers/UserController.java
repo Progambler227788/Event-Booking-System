@@ -2,8 +2,11 @@ package com.talhaatif.ticketbook.controllers;
 
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
+import com.talhaatif.ticketbook.entities.events.Category;
+import com.talhaatif.ticketbook.services.EventService;
 import com.talhaatif.ticketbook.services.UserService;
 import com.talhaatif.ticketbook.services.BookingService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,20 +16,31 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/profile")// Base URL
 @Slf4j // Logging
+@Tag(name = "User APIS",description = "User related apis")
 public class UserController {
 
     private final UserService userService;
     private final BookingService bookingService;
+    private final EventService eventService;
 
-    public UserController(UserService userService, BookingService bookingService) {
+    public UserController(UserService userService, BookingService bookingService, EventService eventService) {
         this.userService = userService;
         this.bookingService = bookingService;
+        this.eventService = eventService;
+    }
+
+    // ✅ Test User Profile
+    @GetMapping("/user/hello")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public String userProfile() {
+        return "Welcome to User Profile";
     }
 
     // --------------------Booking Section---------------------------------
@@ -69,7 +83,7 @@ public class UserController {
         return ResponseEntity.ok(bookingService.getBookingsByUser(userId));
     }
 
-
+   // Filter all bookings of a user by size and page
     @GetMapping("/filter")
     public ResponseEntity<?> filterBookings(
             @RequestParam(required = false) Integer month,
@@ -89,15 +103,82 @@ public class UserController {
 
 
 
+    // --------------------Events Section--------------------
 
-
-
-    // ✅ Test User Profile
-    @GetMapping("/user/hello")
+    // 🔍 Search events by location with pagination
+    @GetMapping("/events/searchByLocation")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public String userProfile() {
-        return "Welcome to User Profile";
+    public ResponseEntity<?> searchEventsByLocation(
+            @RequestParam String location,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(eventService.searchEventsByLocation(location, page, size));
     }
+
+    // 🔍 Search events by category with pagination
+    @GetMapping("/events/searchByCategory")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> searchEventsByCategory(
+            @RequestParam Category category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(eventService.searchEventsByCategory(category, page, size));
+    }
+
+    // 🔍 Search events by date range with pagination
+    @GetMapping("/events/searchByDateRange")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> searchEventsByDateRange(
+            @RequestParam Date startTime,
+            @RequestParam Date endTime,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(eventService.searchEventsByDateRange(startTime, endTime, page, size));
+    }
+
+    // 🔍 Search events by title or description with pagination
+    @GetMapping("/events/searchByTitleOrDescription")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> searchEventsByTitleOrDescription(
+            @RequestParam String queryText,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(eventService.searchEventsByTitleOrDescription(queryText, page, size));
+    }
+
+    // 🔍 Search events by minimum rating with pagination
+    @GetMapping("/events/searchByRating")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> searchEventsByRating(
+            @RequestParam double minRating,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(eventService.searchEventsByRating(minRating, page, size));
+    }
+
+    // 🔍 Search events with available seats with pagination
+    @GetMapping("/events/searchWithAvailableSeats")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> searchEventsWithAvailableSeats(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(eventService.searchEventsWithAvailableSeats(page, size));
+    }
+
+    // 🔍 Search events sorted by date, rating, or price with pagination
+    @GetMapping("/events/searchSorted")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> searchEventsSorted(
+            @RequestParam String sortBy,
+            @RequestParam boolean ascending,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(eventService.searchEventsSorted(sortBy, ascending, page, size));
+    }
+
+
+
+
 
     // --------------------Wallet Section--------------------
     @PostMapping("/wallet/addBalance")

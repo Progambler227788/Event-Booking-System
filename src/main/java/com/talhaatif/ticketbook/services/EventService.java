@@ -5,12 +5,15 @@ import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.events.Seat;
 import com.talhaatif.ticketbook.exceptions.ResourceMissingException;
 import com.talhaatif.ticketbook.repositories.EventRepository;
+import com.talhaatif.ticketbook.repositories.EventRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 // eventId129
 @Service
@@ -18,6 +21,9 @@ public class EventService {
 
     @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    private EventRepositoryImpl eventRepositoryImpl;
 
     // 🔹 Get Event by ID
     public Event getEventById(String id) {
@@ -65,5 +71,45 @@ public class EventService {
    //  ❌ Delete all events
     public void deleteAllEvent() {
         eventRepository.deleteAll();
+    }
+
+
+
+    // ------------------------- Filter and Search Section
+
+
+    // 🔍 Search events by location with pagination
+    public List<Event> searchEventsByLocation(String location, int page, int size) {
+        return eventRepositoryImpl.searchEventsByLocation(location, page, size);
+    }
+
+    // 🔍 Search events by category with pagination
+    public List<Event> searchEventsByCategory(Category category, int page, int size) {
+        return eventRepositoryImpl.searchEventsByCategory(category, page, size);
+    }
+
+    // 🔍 Search events by date range with pagination
+    public List<Event> searchEventsByDateRange(Date startTime, Date endTime, int page, int size) {
+        return eventRepositoryImpl.searchEventsByDateRange(startTime, endTime, page, size);
+    }
+
+    // 🔍 Search events by title or description with pagination
+    public List<Event> searchEventsByTitleOrDescription(String queryText, int page, int size) {
+        return eventRepositoryImpl.searchEventsByTitleOrDescription(queryText, page, size);
+    }
+
+    // 🔍 Search events by minimum rating with pagination
+    public List<Event> searchEventsByRating(double minRating, int page, int size) {
+        return eventRepositoryImpl.searchEventsByRating(minRating, page, size);
+    }
+
+    // 🔍 Search events with available seats with pagination
+    public List<Event> searchEventsWithAvailableSeats(int page, int size) {
+        return eventRepositoryImpl.searchEventsWithAvailableSeats(page, size);
+    }
+
+    // 🔍 Search events sorted by date, rating, or price with pagination
+    public List<Event> searchEventsSorted(String sortBy, boolean ascending, int page, int size) {
+        return eventRepositoryImpl.searchEventsSorted(sortBy, ascending, page, size);
     }
 }

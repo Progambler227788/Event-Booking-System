@@ -10,6 +10,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -19,11 +20,27 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private final Map<String, Integer> requestCounts = new ConcurrentHashMap<>();
 
     // Define maximum allowed requests per minute
-    private static final int MAX_REQUESTS_PER_MINUTE = 3;
+    private static final int MAX_REQUESTS_PER_MINUTE = 60;
+
+    // Define paths to exclude from rate limiting
+    private static final Set<String> EXCLUDED_PATHS = Set.of(
+            "/v3/api-docs", "/swagger-ui", "/swagger", "/webjars"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+
+        String path = request.getRequestURI();
+
+        // Skip rate limiting for Swagger URLs
+        if (EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
 
         // Get the client's IP address
         String clientIp = request.getRemoteAddr();

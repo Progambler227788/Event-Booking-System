@@ -25,3 +25,28 @@ springdoc:
   show-actuator: true
   packages-to-scan: com.talhaatif.ticketbook.controllers
 
+
+swagger:
+  api:
+    title: "🎟️ Ticket Booking API"
+    version: "1.0.0"
+    description: |
+      Welcome to the Ticket Booking API! 🚀
+
+      This API allows users to book and manage event tickets securely using JWT authentication.
+
+      🔹 **Current Features:**
+      - 🛠️ Admin can create, update, delete, and view events.
+      - 📊 Admin can see all customer bookings.
+      - 🎫 Customers can book and cancel tickets.
+      - 💰 Customers can add and remove balance from their wallet.
+      - 🔐 Secure login & signup with JWT authentication.
+      - 🔍 Customers can filter events by page & size.
+      - ⏳ Rate limiting is implemented to prevent abuse.
+
+      **Usage:**  
+      - Authenticate using the login API.
+      - Click on the **Authorize** button in Swagger UI.
+      - Enter the JWT token to access secured endpoints.
+
+

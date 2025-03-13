@@ -7,13 +7,12 @@ import com.talhaatif.ticketbook.entities.user.User;
 import com.talhaatif.ticketbook.services.BookingService;
 import com.talhaatif.ticketbook.services.EventService;
 import com.talhaatif.ticketbook.services.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
 
@@ -23,6 +22,7 @@ import java.util.List;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')") //
+@Tag(name = "Admin APIS",description = "Admin related apis")
 public class AdminController {
 
 
