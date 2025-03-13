@@ -1,5 +1,6 @@
 package com.talhaatif.ticketbook.services;
 
+import com.talhaatif.ticketbook.dto.UpdateRequest;
 import com.talhaatif.ticketbook.dto.UserBalance;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.talhaatif.ticketbook.entities.user.User;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -107,34 +109,30 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public String updateUserProfile(String userId, User updatedUser) {
+    public String updateUserProfile(String userId, UpdateRequest updateRequest) {
         User existingUser = userRepository.findById(new ObjectId(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // Only update fields that are not null (to avoid overwriting existing data)
-        boolean credentialsChanged= false;
-        if (updatedUser.getUsername() != null) {
-            existingUser.setUserName(updatedUser.getUsername());
-            credentialsChanged=true;
+        boolean credentialsChanged = false;
+
+
+        if (StringUtils.hasText(updateRequest.getUserName())) {
+            existingUser.setUserName(updateRequest.getUserName());
+            credentialsChanged = true;
         }
-        if (updatedUser.getEmail() != null) {
-            existingUser.setEmail(updatedUser.getEmail());
-            credentialsChanged=true;
+        if (StringUtils.hasText(updateRequest.getEmail())) {
+            existingUser.setEmail(updateRequest.getEmail());
+            credentialsChanged = true;
         }
-
-        if (updatedUser.getPhoneNumber() != null)
-            existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-
-
+        if (StringUtils.hasText(updateRequest.getPhoneNumber())) {
+            existingUser.setPhoneNumber(updateRequest.getPhoneNumber());
+        }
 
         userRepository.save(existingUser);
 
-        // Regenerate new token
-
-        if(credentialsChanged){
-           return jwtUtil.generateToken(existingUser.getUsername(),existingUser.getRole().get(0));
-        }
-        return "";
+        return credentialsChanged
+                ? jwtUtil.generateToken(existingUser.getUsername(), existingUser.getRole().get(0))
+                : "";
     }
 
 
@@ -219,6 +217,18 @@ public class UserService {
 
 
 
-
-
 }
+
+/* StringUtils is a utility class provided by Spring Framework under
+org.springframework.util.StringUtils. It helps with common string operations,
+such as checking if a string is empty, trimming whitespace, and more.*/
+
+
+/*Why Use StringUtils.hasText() Instead of != null && !isEmpty()?
+Using StringUtils.hasText() is better than manually checking for null and isEmpty() because:
+
+It automatically trims the string before checking.
+It returns false for whitespace-only strings, which " ".isEmpty() does not.
+It makes code cleaner & more readable.
+
+ */

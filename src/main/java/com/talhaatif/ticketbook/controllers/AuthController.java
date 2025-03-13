@@ -1,9 +1,11 @@
 package com.talhaatif.ticketbook.controllers;
 
 import com.talhaatif.ticketbook.dto.SignupRequest;
+import com.talhaatif.ticketbook.dto.UpdateRequest;
 import com.talhaatif.ticketbook.entities.user.User;
 import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;
 import com.talhaatif.ticketbook.services.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +35,10 @@ import java.util.Map;
 
 // @RequestMapping is an annotation in Spring Boot
 // that is used to map HTTP requests to specific controller classes or methods.
+@Tag(name = "Auth APIS",description = "Auth related apis")
 public class AuthController {
 
+    // required args constructor will provide their instances
     private final AuthenticationManager authenticationManager;
 
     private final JwtUtil jwtUtil;
@@ -42,8 +46,8 @@ public class AuthController {
     private final UserService userService;
 
     private final UserDetailsServiceImpl userDetailsService;
-    @PostMapping("/generateToken")
 
+    @PostMapping("/login")
     public ResponseEntity<String> authenticateAndGetToken(@RequestBody LoginRequest authRequest) {
 
         log.info("Authentication request received for user: {}", authRequest.getUserName());
@@ -105,17 +109,27 @@ public class AuthController {
 
     @PutMapping("/updateProfile")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<Map<String, String>> updateProfile(@RequestBody User updatedUser) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
-        String userId = userService.getUserIdByUserName(authenticatedUserName);
+    public ResponseEntity<Map<String, String>> updateProfile(@RequestBody UpdateRequest updateRequest) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUserName = ((UserDetails) auth.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(loggedInUserName);
 
-        String jwtNewToken = userService.updateUserProfile(userId, updatedUser);
+        // Validate input fields
+        if (updateRequest.getUserName() == null || updateRequest.getUserName().isEmpty() ||
+                updateRequest.getEmail() == null || updateRequest.getEmail().isEmpty() ||
+                updateRequest.getPhoneNumber() == null || updateRequest.getPhoneNumber().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "All fields must be provided"));
+        }
+
+        String newJwtToken = userService.updateUserProfile(userId, updateRequest);
+
+        // Build response
         Map<String, String> response = new HashMap<>();
         response.put("message", "User profile updated successfully");
-        if (jwtNewToken !=null && !jwtNewToken .isEmpty() ){
-            response.put("JWT TOKEN",jwtNewToken);
+        if (newJwtToken != null && !newJwtToken.isEmpty()) {
+            response.put("jwtToken", newJwtToken);
         }
+
         return ResponseEntity.ok(response);
     }
 
