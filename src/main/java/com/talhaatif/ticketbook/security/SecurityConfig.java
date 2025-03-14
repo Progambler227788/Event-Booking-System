@@ -33,6 +33,7 @@ Use JwtFilter before UsernamePasswordAuthenticationFilter to process JWT authent
 */
 public class SecurityConfig {
 
+    // Constructor Base Injection
     private final JwtFilter authFilter;
 
     private final RateLimitingFilter rateLimitingFilter;
