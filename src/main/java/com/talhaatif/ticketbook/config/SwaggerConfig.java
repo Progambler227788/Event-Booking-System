@@ -22,6 +22,7 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
+        String bearerAuth = "Bearer Authentication";
         return new OpenAPI()
                 .info(new Info()
                         .title(title)
@@ -29,11 +30,11 @@ public class SwaggerConfig {
                         .description(description)
                 )
                 // Enable JWT Authentication in Swagger UI
-                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                .addSecurityItem(new SecurityRequirement().addList(bearerAuth))
                 .components(new io.swagger.v3.oas.models.Components()
-                        .addSecuritySchemes("Bearer Authentication",
+                        .addSecuritySchemes(bearerAuth,
                                 new SecurityScheme()
-                                        .name("Bearer Authentication")
+                                        .name(bearerAuth)
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")));

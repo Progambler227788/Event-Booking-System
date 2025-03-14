@@ -1,8 +1,7 @@
 package com.talhaatif.ticketbook.security;
 
 import com.talhaatif.ticketbook.config.RateLimitingFilter;
-import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,13 +34,19 @@ Use JwtFilter before UsernamePasswordAuthenticationFilter to process JWT authent
 */
 public class SecurityConfig {
 
-    private final PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
-    @Autowired
     private JwtFilter authFilter;
 
-    @Autowired
     private RateLimitingFilter rateLimitingFilter;
+
+
+    public SecurityConfig(RateLimitingFilter rateLimitingFilter, JwtFilter jwtFilter, PasswordEncoder passwordEncoder){
+        this.rateLimitingFilter = rateLimitingFilter;
+        this.authFilter = jwtFilter;
+        this.passwordEncoder = passwordEncoder;
+
+    }
 
 
 
