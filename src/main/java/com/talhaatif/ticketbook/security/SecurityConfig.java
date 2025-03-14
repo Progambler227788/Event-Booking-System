@@ -1,7 +1,7 @@
 package com.talhaatif.ticketbook.security;
 
 import com.talhaatif.ticketbook.config.RateLimitingFilter;
-import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;;
+import com.talhaatif.ticketbook.services.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,7 +24,6 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-
 // Defines security rules and adds the JWT filter to the security filter chain.
 
 /*
@@ -34,30 +33,23 @@ Use JwtFilter before UsernamePasswordAuthenticationFilter to process JWT authent
 */
 public class SecurityConfig {
 
-    private PasswordEncoder passwordEncoder;
+    private final JwtFilter authFilter;
 
-    private JwtFilter authFilter;
+    private final RateLimitingFilter rateLimitingFilter;
 
-    private RateLimitingFilter rateLimitingFilter;
+    private final PasswordEncoder passwordEncoder;
 
 
-    public SecurityConfig(RateLimitingFilter rateLimitingFilter, JwtFilter jwtFilter, PasswordEncoder passwordEncoder){
+    public SecurityConfig(RateLimitingFilter rateLimitingFilter, JwtFilter jwtFilter, PasswordEncoder passwordEncoder) {
         this.rateLimitingFilter = rateLimitingFilter;
         this.authFilter = jwtFilter;
         this.passwordEncoder = passwordEncoder;
-
     }
-
-
 
 
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserDetailsServiceImpl(); // Ensure UserInfoService implements UserDetailsService
-    }
-
-    public SecurityConfig(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
     }
 
 
