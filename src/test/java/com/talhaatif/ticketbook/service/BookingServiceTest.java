@@ -65,6 +65,7 @@ public class BookingServiceTest {
     public void testOptimisticLockingWithConcurrentBookings() throws Exception {
         System.out.println("🔍 Starting concurrent booking test...");
 
+        // 5 users
         ExecutorService executor = Executors.newFixedThreadPool(5);
         List<Future<Boolean>> futures = new ArrayList<>();
 
@@ -120,6 +121,7 @@ public class BookingServiceTest {
         }
 
         executor.shutdown();
+        // 3, 1 fail
 
         // Since each thread books different seats, all bookings should succeed
         if (successfulBookings == 4) {

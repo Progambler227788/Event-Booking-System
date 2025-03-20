@@ -67,11 +67,13 @@ public class BookingService {
         }
         throw new RuntimeException("Booking failed.");
     }
+
     @Transactional(rollbackFor = Exception.class)
     private Booking bookSeatsWithTransaction(String userId, String eventId, List<String> seatNumbers, String paymentMethod) {
         // 1️⃣ Fetch latest Event (with optimistic locking)
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceMissingException("Event not found"));
+        // user 1, ev
 
         // 2️⃣ Fetch User
         User user = userRepository.findById(new ObjectId(userId))
@@ -91,11 +93,14 @@ public class BookingService {
                 .and("seats.seatNumber").in(seatNumbers)
                 .and("seats.isAvailable").is(true));
         Update update = new Update();
+
         for (String seatNumber : seatNumbers) {
-            update.set("seats.$[elem].isAvailable", false)
+            update.set("seats.$[elem].isAvailable", false).set("seats.$[elem].version",1)
                     .filterArray(Criteria.where("elem.seatNumber").is(seatNumber));
         }
-        update.inc("version", 1); // Increment version
+
+        // by default 0,
+//        update.inc("version", 1); // Increment version
 
         UpdateResult result = mongoTemplate.updateFirst(query, update, Event.class);
 
@@ -124,6 +129,7 @@ public class BookingService {
 
         return bookingRepository.save(booking);
     }
+
     // handle payment
     Payment handlePayment(String userId, User user, double totalAmount, String paymentMethod){
         if ("WALLET".equalsIgnoreCase(paymentMethod)) {

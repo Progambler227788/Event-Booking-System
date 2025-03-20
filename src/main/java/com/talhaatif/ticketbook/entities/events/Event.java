@@ -36,8 +36,9 @@ public class Event {
     private String facebookUrl;
     private String twitterUrl;
     private String instagramUrl;
-    @Version  // This ensures Optimistic Locking works!
-    private Long version;
+
+//    @Version  // This ensures Optimistic Locking works!
+//    private Long version;
 
 }
 
