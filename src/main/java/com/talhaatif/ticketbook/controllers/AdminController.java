@@ -85,16 +85,23 @@ public class AdminController {
         bookingService.deleteAllBookings();
         return ResponseEntity.noContent().build();
     }
-    // Delete all events
 
+    // delete all users
+    @DeleteMapping("/users/deleteAllUsers")
+    public ResponseEntity<Void> deleteAllUsers() {
+        userService.deleteAllUsers();
+        bookingService.deleteAllBookings();
+        return ResponseEntity.noContent().build();
+    }
+
+
+    // Delete all events
     @DeleteMapping("/events/deleteAllEvents")
     public ResponseEntity<Void> deleteAllEvents() {
         eventService.deleteAllEvent();
         bookingService.deleteAllBookings();
         return ResponseEntity.noContent().build();
     }
-
-
 
 
 

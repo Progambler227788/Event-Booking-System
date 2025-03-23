@@ -30,15 +30,9 @@ public class Event {
     private List<Seat> seats;
     private double basePrice;
     private double rating;
+    private int totalBookedSeats;
     private int totalSeats; //  this field has getter and setter
     private String termsAndConditions; // Terms and conditions for the event
-    // Social Media Handles
-    private String facebookUrl;
-    private String twitterUrl;
-    private String instagramUrl;
-
-//    @Version  // This ensures Optimistic Locking works!
-//    private Long version;
 
 }
 

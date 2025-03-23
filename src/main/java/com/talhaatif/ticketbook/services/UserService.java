@@ -109,6 +109,11 @@ public class UserService {
         return userRepository.findAll();
     }
 
+
+    public void deleteAllUsers() {
+         userRepository.deleteAll();
+    }
+
     public String updateUserProfile(String userId, UpdateRequest updateRequest) {
         User existingUser = userRepository.findById(new ObjectId(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
