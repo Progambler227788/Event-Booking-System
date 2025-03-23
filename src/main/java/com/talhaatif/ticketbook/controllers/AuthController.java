@@ -48,44 +48,46 @@ public class AuthController {
     private final UserDetailsServiceImpl userDetailsService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> authenticateAndGetToken(@RequestBody LoginRequest authRequest) {
+    public ResponseEntity<?> authenticateAndGetToken(@RequestBody LoginRequest authRequest) {
 
         log.info("Authentication request received for user: {}", authRequest.getUserName());
 
         try {
-            // It will user UserDetailsServiceImpl --> loadUserName, encodePassword
-            // Spring Security internally checks if the username (john_doe) and password (password123) are
-            // valid by comparing them against the database or in-memory user details.
-            // Creates an object of -> UsernamePasswordAuthenticationToken
+            // Authenticate the user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getUserName(), authRequest.getPassword())
             );
 
             log.info("Authentication successful for user: {}", authRequest.getUserName());
-        // if user is authenticated extract its details
+
             if (authentication.isAuthenticated()) {
-                // 🔹 Get user details that has role as well
+                // Get user details
                 UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-                // 🔹 Extract role
+                // Extract role
                 String role = userDetails.getAuthorities().stream()
                         .findFirst()
                         .orElseThrow(() -> new RuntimeException("Role not found"))
                         .getAuthority()
                         .replace("ROLE_", ""); // Remove "ROLE_" prefix
 
-                // 🔹 Generate token
+                // Generate token
                 String token = jwtUtil.generateToken(authRequest.getUserName(), role);
                 log.info("Generated JWT token for user: {} with role: {}", authRequest.getUserName(), role);
-                return ResponseEntity.ok(token);
+
+                // Return token in a JSON object
+                Map<String, String> response = new HashMap<>();
+                response.put("token", token);
+                return ResponseEntity.ok(response);
             } else {
                 log.warn("Authentication failed for user: {}", authRequest.getUserName());
-                return ResponseEntity.badRequest().body("Invalid user request");
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid user request"));
             }
         } catch (Exception e) {
             log.error("Authentication error for user: {} - {}", authRequest.getUserName(), e.getMessage());
-            return ResponseEntity.badRequest().body("Authentication error for user");
+            return ResponseEntity.badRequest().body(Map.of("error", "Authentication error for user"));
         }
+
     }
 
     // User Registration (Sign-Up)
