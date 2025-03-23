@@ -1,5 +1,6 @@
 package com.talhaatif.ticketbook.controllers;
 
+import com.talhaatif.ticketbook.dto.SeatUpdate;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
 import com.talhaatif.ticketbook.entities.events.Category;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,11 +31,13 @@ public class UserController {
     private final UserService userService;
     private final BookingService bookingService;
     private final EventService eventService;
+    private final SimpMessagingTemplate messagingTemplate; // For WebSocket messaging
 
-    public UserController(UserService userService, BookingService bookingService, EventService eventService) {
+    public UserController(UserService userService, BookingService bookingService, EventService eventService, SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
         this.bookingService = bookingService;
         this.eventService = eventService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     // ✅ Test User Profile
@@ -55,6 +59,12 @@ public class UserController {
         String userId = userService.getUserIdByUserName(authenticatedUserName);
 
         userService.bookTickets(userId, eventId, seatNumbers, paymentMethod);
+
+        // Broadcast seat updates to all clients
+        SeatUpdate seatUpdate = new SeatUpdate(eventId, seatNumbers, "BOOKED");
+        messagingTemplate.convertAndSend("/topic/seats", seatUpdate);
+
+
         return ResponseEntity.ok(Map.of("message", "Ticket booked successfully"));
     }
 
