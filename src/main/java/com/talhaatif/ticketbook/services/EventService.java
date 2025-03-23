@@ -3,11 +3,13 @@ package com.talhaatif.ticketbook.services;
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.events.Seat;
+import com.talhaatif.ticketbook.entities.events.TrendingEvent;
 import com.talhaatif.ticketbook.exceptions.ResourceMissingException;
 import com.talhaatif.ticketbook.repositories.EventRepository;
 import com.talhaatif.ticketbook.repositories.EventRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,6 +31,11 @@ public class EventService {
     public Event getEventById(String id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceMissingException("Event not found with ID: " + id));
+    }
+
+
+    public List<TrendingEvent> getTrendingEvents() {
+        return  eventRepositoryImpl.getTrendingEvents();
     }
 
 

@@ -8,8 +8,15 @@ spring:
       uri: ${MONGO_URI}
       database: ticketdb
       auto-index-creation: true
+    cache:
+      type: redis
+    redis:
+      host: ${REDIS_URI}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASS}
   config:
     import: optional:file:.env[.properties]
+
 secret:
   key: ${SECRET_KEY}
 stripe:
@@ -24,6 +31,8 @@ springdoc:
     enable: true
   show-actuator: true
   packages-to-scan: com.talhaatif.ticketbook.controllers
+
+
 
 
 swagger:

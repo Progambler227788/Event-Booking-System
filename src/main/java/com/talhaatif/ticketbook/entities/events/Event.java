@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 import  lombok.*;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "events")
 @NoArgsConstructor
@@ -30,6 +32,7 @@ public class Event {
     private List<Seat> seats;
     private double basePrice;
     private double rating;
+    @Indexed(direction = IndexDirection.DESCENDING)
     private int totalBookedSeats;
     private int totalSeats; //  this field has getter and setter
     private String termsAndConditions; // Terms and conditions for the event

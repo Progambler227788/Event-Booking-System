@@ -115,6 +115,14 @@ public class UserController {
 
     // --------------------Events Section--------------------
 
+    @GetMapping("/events/trendingEvents")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> fetchTrendingEvents() {
+        System.out.println("Fetching trending events...");
+        return ResponseEntity.ok(eventService.getTrendingEvents());
+    }
+
+
     // 🔍 Search events by location with pagination
     @GetMapping("/events/searchByLocation")
     @PreAuthorize("hasAuthority('ROLE_USER')")

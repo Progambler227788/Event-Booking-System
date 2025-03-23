@@ -2,22 +2,61 @@ package com.talhaatif.ticketbook.repositories;
 
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
+import com.talhaatif.ticketbook.entities.events.TrendingEvent;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class EventRepositoryImpl {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    // Run updateTrendingEvents automatically at startup
+    @PostConstruct
+    public void init() {
+        System.out.println("🚀 Application started. Running initial update of trending events...");
+        updateTrendingEvents();
+    }
+
+    @Cacheable(value = "trendingEvents", key = "'top15'")
+    public List<TrendingEvent> getTrendingEvents() {
+        return mongoTemplate.findAll(TrendingEvent.class);
+    }
+
+    // Scheduled task to update trending events every 5 minutes
+    @Scheduled(fixedRate = 3000) // Every 5 minutes
+    public void updateTrendingEvents() {
+        // Fetch top 15 trending events from the events collection
+        List<Event> trendingEvents = mongoTemplate.find(
+                new Query().with(Sort.by(Sort.Direction.DESC, "totalBookedSeats")).limit(15),
+                Event.class
+        );
+
+        // Clear old trending events
+        mongoTemplate.remove(new Query(), TrendingEvent.class);
+
+        // Convert Event objects to TrendingEvent objects and save them
+        List<TrendingEvent> trendingEventList = trendingEvents.stream()
+                .map(TrendingEvent::new)
+                .collect(Collectors.toList());
+
+        mongoTemplate.insert(trendingEventList, TrendingEvent.class);
+
+        System.out.println("✅ Trending events updated successfully!");
+    }
 
     // 🔍 Search events by location (case-insensitive regex) with pagination
     public List<Event> searchEventsByLocation(String location, int page, int size) {
