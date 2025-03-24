@@ -3,8 +3,11 @@ package com.talhaatif.ticketbook.repositories;
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.events.TrendingEvent;
+import com.talhaatif.ticketbook.services.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -24,6 +27,11 @@ public class EventRepositoryImpl {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private RedisService redisService;
+
+    private static final String TRENDING_EVENTS_KEY = "top5"; // Redis key
+
     // Run updateTrendingEvents automatically at startup
     @PostConstruct
     public void init() {
@@ -31,32 +39,53 @@ public class EventRepositoryImpl {
         updateTrendingEvents();
     }
 
-    @Cacheable(value = "trendingEvents", key = "'top15'")
+
+
     public List<TrendingEvent> getTrendingEvents() {
-        return mongoTemplate.findAll(TrendingEvent.class);
+        // Step 1: Try fetching from Redis
+        List<TrendingEvent> cachedEvents = redisService.get(TRENDING_EVENTS_KEY, List.class);
+
+        if (cachedEvents != null) {
+            System.out.println("✅ Fetched from Redis cache!");
+            return cachedEvents;
+        }
+
+        // Step 2: If not found in Redis, fetch from MongoDB
+        List<TrendingEvent> dbEvents = mongoTemplate.findAll(TrendingEvent.class);
+
+        if (!dbEvents.isEmpty()) {
+            redisService.set(TRENDING_EVENTS_KEY, dbEvents, 300L); // Store in Redis (TTL: 5 mins)
+        }
+
+        return dbEvents;
     }
 
-    // Scheduled task to update trending events every 5 minutes
-    @Scheduled(fixedRate = 3000) // Every 5 minutes
+    @Scheduled(fixedRate = 300000) // Every 5 minutes
     public void updateTrendingEvents() {
-        // Fetch top 15 trending events from the events collection
+        System.out.println("🚀 Updating trending events...");
+
+        // Step 1: Fetch from MongoDB
         List<Event> trendingEvents = mongoTemplate.find(
-                new Query().with(Sort.by(Sort.Direction.DESC, "totalBookedSeats")).limit(15),
+                new Query().with(Sort.by(Sort.Direction.DESC, "totalBookedSeats")).limit(5),
                 Event.class
         );
 
-        // Clear old trending events
+        // Step 2: Clear old records in MongoDB
         mongoTemplate.remove(new Query(), TrendingEvent.class);
 
-        // Convert Event objects to TrendingEvent objects and save them
+        // Step 3: Convert & store in MongoDB
         List<TrendingEvent> trendingEventList = trendingEvents.stream()
                 .map(TrendingEvent::new)
                 .collect(Collectors.toList());
-
         mongoTemplate.insert(trendingEventList, TrendingEvent.class);
 
-        System.out.println("✅ Trending events updated successfully!");
+        // Step 4: Store in Redis for fast access
+        redisService.set(TRENDING_EVENTS_KEY, trendingEventList, 300L); // Cache for 5 minutes
+
+        System.out.println("✅ Trending events updated successfully in DB & Redis!");
     }
+
+
 
     // 🔍 Search events by location (case-insensitive regex) with pagination
     public List<Event> searchEventsByLocation(String location, int page, int size) {

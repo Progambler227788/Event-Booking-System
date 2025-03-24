@@ -39,6 +39,11 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEvent);
     }
 
+    @PostMapping("/events/bulk")
+    public List<Event> addMultipleEvents(@RequestBody List<Event> events) {
+        return eventService.addEvents(events);
+    }
+
     // 🔎 Search Events by Category
     @GetMapping("/events/category/{category}")
     public ResponseEntity<List<Event>> getEventsByCategory(@PathVariable Category category) {

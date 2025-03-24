@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,6 +45,7 @@ public class EventService {
     }
 
     // ✅ Create New Event (Admin Only)
+    @Transactional(rollbackFor = Exception.class)
     public Event createEvent(Event event) {
         // Initialize Seats
         List<Seat> seats = new ArrayList<>();
@@ -52,11 +54,38 @@ public class EventService {
         }
         event.setSeats(seats);
 
-        return eventRepository.save(event);
+        // first save
+        Event savedEvent = eventRepository.save(event);
+
+        System.out.println("Updating trending event because new event created");
+
+        // then update for trending events
+        eventRepositoryImpl.updateTrendingEvents();
+
+        return savedEvent;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public List<Event> addEvents(List<Event> events) {
+        for (Event event : events) {
+            // Initialize Seats for each event
+            List<Seat> seats = new ArrayList<>();
+            for (int i = 1; i <= event.getTotalSeats(); i++) {
+                seats.add(new Seat("Seat-" + i, true, event.getBasePrice(), 0L));
+            }
+            event.setSeats(seats);
+        }
+        List<Event> savedEvents = eventRepository.saveAll(events); // Save all events>
+
+        eventRepositoryImpl.updateTrendingEvents();
+
+        return savedEvents;
     }
 
     // 🔎 Get Events by Category
     public List<Event> getEventsByCategory(Category category) {
+
+
         return eventRepository.findByCategory(category);
     }
 
