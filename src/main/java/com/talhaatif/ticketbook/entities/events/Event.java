@@ -21,11 +21,6 @@ public class Event {
     private String title;
     private String description;
     private String imageUrl;
-    private String organizer; // Name of the organizer
-    private String organizerContact; // Contact information of the organizer
-    private String eventLanguage; // Language of the event
-    private int minAge; // Minimum age required to attend
-    private List<String> tags; // Tags like "family-friendly", "outdoor", "live-music"
     private Category category; // ENUM: MOVIE, CONCERT, SPORTS, FLIGHT
     private String location;
     private Date dateTime;
@@ -38,6 +33,11 @@ public class Event {
     private String termsAndConditions; // Terms and conditions for the event
 
 }
+//  private List<String> tags; // Tags like "family-friendly", "outdoor", "live-music"
+//     private int minAge; // Minimum age required to attend
+//private String organizer; // Name of the organizer
+//private String organizerContact; // Contact information of the organizer
+//private String eventLanguage; // Language of the event
 
 /*
 * // Create a new event

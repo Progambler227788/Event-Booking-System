@@ -1,6 +1,8 @@
 package com.talhaatif.ticketbook.services;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j  // autmatically injects logger object
@@ -22,6 +25,10 @@ public class RedisService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public ObjectMapper giveObjectMapper() {
         return new ObjectMapper();
@@ -42,6 +49,21 @@ public class RedisService {
         }
         return null;  // Return null only if not found or on failure
     }
+
+    public <T> List<T> getList(String key, Class<T> clazz) {
+        try {
+            String json = (String) redisTemplate.opsForValue().get(key);
+            if (json != null) {
+                return objectMapper.readValue(json,
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, clazz));
+            }
+        } catch (Exception e) {
+            log.error("Error retrieving list for key '{}' from Redis", key, e);
+        }
+        return null;
+    }
+
+
 
 
     public void set(String key, Object setting, Long tDuration){

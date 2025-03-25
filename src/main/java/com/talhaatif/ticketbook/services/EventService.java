@@ -1,5 +1,6 @@
 package com.talhaatif.ticketbook.services;
 
+import com.talhaatif.ticketbook.dto.SimplifiedTrendingEvent;
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.events.Seat;
@@ -35,7 +36,7 @@ public class EventService {
     }
 
 
-    public List<TrendingEvent> getTrendingEvents() {
+    public List<SimplifiedTrendingEvent> getTrendingEvents() {
         return  eventRepositoryImpl.getTrendingEvents();
     }
 

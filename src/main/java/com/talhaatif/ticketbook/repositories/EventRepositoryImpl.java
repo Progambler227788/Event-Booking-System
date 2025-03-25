@@ -1,10 +1,12 @@
 package com.talhaatif.ticketbook.repositories;
 
+import com.talhaatif.ticketbook.dto.SimplifiedTrendingEvent;
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.events.TrendingEvent;
 import com.talhaatif.ticketbook.services.RedisService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
+@Slf4j
 public class EventRepositoryImpl {
 
     @Autowired
@@ -32,6 +35,8 @@ public class EventRepositoryImpl {
 
     private static final String TRENDING_EVENTS_KEY = "top5"; // Redis key
 
+    private static final long CACHE_TTL_SECONDS = 300; // 5 minutes
+
     // Run updateTrendingEvents automatically at startup
     @PostConstruct
     public void init() {
@@ -41,50 +46,78 @@ public class EventRepositoryImpl {
 
 
 
-    public List<TrendingEvent> getTrendingEvents() {
-        // Step 1: Try fetching from Redis
-        List<TrendingEvent> cachedEvents = redisService.get(TRENDING_EVENTS_KEY, List.class);
+    public List<SimplifiedTrendingEvent> getTrendingEvents() {
+        // Try fetching from Redis with proper type handling
+        List<TrendingEvent> cachedEvents = redisService.getList(TRENDING_EVENTS_KEY, TrendingEvent.class);
 
-        if (cachedEvents != null) {
-            System.out.println("✅ Fetched from Redis cache!");
-            return cachedEvents;
+        if (cachedEvents != null && !cachedEvents.isEmpty()) {
+            log.info("✅ Serving trending events from cache");
+            return convertToSimplified(cachedEvents);
         }
 
-        // Step 2: If not found in Redis, fetch from MongoDB
+        // Fallback to MongoDB
         List<TrendingEvent> dbEvents = mongoTemplate.findAll(TrendingEvent.class);
 
         if (!dbEvents.isEmpty()) {
-            redisService.set(TRENDING_EVENTS_KEY, dbEvents, 300L); // Store in Redis (TTL: 5 mins)
+            redisService.set(TRENDING_EVENTS_KEY, dbEvents, CACHE_TTL_SECONDS);
         }
 
-        return dbEvents;
+        return convertToSimplified(dbEvents);
     }
 
-    @Scheduled(fixedRate = 300000) // Every 5 minutes
+    @Scheduled(fixedRate = 300000)
     public void updateTrendingEvents() {
-        System.out.println("🚀 Updating trending events...");
+        log.info("🔄 Updating trending events...");
 
-        // Step 1: Fetch from MongoDB
         List<Event> trendingEvents = mongoTemplate.find(
-                new Query().with(Sort.by(Sort.Direction.DESC, "totalBookedSeats")).limit(5),
+                new Query()
+                        .with(Sort.by(Sort.Direction.DESC, "totalBookedSeats"))
+                        .limit(5),
                 Event.class
         );
 
-        // Step 2: Clear old records in MongoDB
+        // Atomic update operation
         mongoTemplate.remove(new Query(), TrendingEvent.class);
-
-        // Step 3: Convert & store in MongoDB
         List<TrendingEvent> trendingEventList = trendingEvents.stream()
-                .map(TrendingEvent::new)
+                .map(this::convertToTrendingEvent)
                 .collect(Collectors.toList());
         mongoTemplate.insert(trendingEventList, TrendingEvent.class);
 
-        // Step 4: Store in Redis for fast access
-        redisService.set(TRENDING_EVENTS_KEY, trendingEventList, 300L); // Cache for 5 minutes
-
-        System.out.println("✅ Trending events updated successfully in DB & Redis!");
+        // Update cache
+        redisService.set(TRENDING_EVENTS_KEY, trendingEventList, CACHE_TTL_SECONDS);
+        log.info("✅ Updated {} trending events in DB & Redis", trendingEventList.size());
     }
 
+
+    private TrendingEvent convertToTrendingEvent(Event event) {
+        return TrendingEvent.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .imageUrl(event.getImageUrl())
+                .location(event.getLocation())
+                .dateTime(event.getDateTime())
+                .totalSeats(event.getTotalSeats())
+                .totalBookedSeats(event.getTotalBookedSeats())
+                .build();
+    }
+
+    private List<SimplifiedTrendingEvent> convertToSimplified(List<TrendingEvent> events) {
+        return events.stream()
+                .map(this::convertToSimplified)
+                .collect(Collectors.toList());
+    }
+
+    private SimplifiedTrendingEvent convertToSimplified(TrendingEvent event) {
+        return SimplifiedTrendingEvent.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .imageUrl(event.getImageUrl())
+                .location(event.getLocation())
+                .dateTime(event.getDateTime())
+                .totalSeats(event.getTotalSeats())
+                .totalBookedSeats(event.getTotalBookedSeats())
+                .build();
+    }
 
 
     // 🔍 Search events by location (case-insensitive regex) with pagination

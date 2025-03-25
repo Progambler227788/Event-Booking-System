@@ -115,6 +115,14 @@ public class UserController {
 
     // --------------------Events Section--------------------
 
+    @GetMapping(value = "/events/{eventId}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> getEventById(@PathVariable String eventId) {
+        System.out.println("Fetching event by ID...");
+
+        return ResponseEntity.ok(eventService.getEventById(eventId));
+    }
+
     @GetMapping("/events/trendingEvents")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<?> fetchTrendingEvents() {
