@@ -49,9 +49,11 @@ public class UserController {
 
     // --------------------Booking Section---------------------------------
 
+
+
     // ✅ Book Ticket (No try-catch needed since exceptions are handled globally)
     // For Wallet payments
-    // For Wallet payments
+
     @PostMapping("/book-with-wallet")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Map<String, String>> bookWithWallet(
@@ -140,6 +142,8 @@ public class UserController {
 
         return ResponseEntity.ok(bookingService.getBookingsByUser(userId));
     }
+
+
 
    // Filter all bookings of a user by size and page
     @GetMapping("/filter")
