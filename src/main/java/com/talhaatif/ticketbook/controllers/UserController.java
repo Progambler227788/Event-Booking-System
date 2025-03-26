@@ -62,6 +62,7 @@ public class UserController {
         Booking booking = userService.bookWithWallet(userId, eventId, seatNumbers);
 
         broadcastSeatUpdate(eventId, seatNumbers, "BOOKED");
+
         return ResponseEntity.ok(Map.of(
                 "message", "Ticket booked successfully",
                 "bookingId", booking.getId()
