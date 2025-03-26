@@ -191,7 +191,7 @@ public class BookingServiceTest {
 
     private boolean bookSeats(String userId, String eventId, List<String> seatNumbers) {
         try {
-            Booking result = bookingService.bookSeats(userId, eventId, seatNumbers, "WALLET");
+            Booking result = bookingService.bookWithWallet(userId, eventId, seatNumbers);
             if (result!=null) {
                 System.out.println("✅ Booking succeeded with ID: " + result.getId());
                 System.out.println("✅ Booking succeeded for seats: " + seatNumbers);
@@ -211,7 +211,7 @@ public class BookingServiceTest {
         System.out.println("🔍 Testing seat booking with transaction...");
 
         List<String> seatNumbers = List.of("8", "9");
-        Booking booking = bookingService.bookSeats(userId, eventId, seatNumbers, "WALLET");
+        Booking booking = bookingService.bookWithWallet(userId, eventId, seatNumbers);
 
         assertNotNull(booking, "Booking should not be null");
         assertEquals(BookingStatus.CONFIRMED, booking.getStatus(), "Booking status should be CONFIRMED");
@@ -232,7 +232,7 @@ public class BookingServiceTest {
 
         // Book some seats first
         List<String> seatNumbers = List.of("10", "11");
-        Booking booking = bookingService.bookSeats(userId, eventId, seatNumbers, "WALLET");
+        Booking booking = bookingService.bookWithWallet(userId, eventId, seatNumbers);
 
         // Cancel the booking
         Booking cancelledBooking = bookingService.cancelBooking(booking.getId());
