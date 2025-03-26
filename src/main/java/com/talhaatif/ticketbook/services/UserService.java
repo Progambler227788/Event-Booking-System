@@ -1,9 +1,11 @@
 package com.talhaatif.ticketbook.services;
 
+import com.stripe.exception.StripeException;
 import com.talhaatif.ticketbook.dto.UpdateRequest;
 import com.talhaatif.ticketbook.dto.UserBalance;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
+import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.user.Wallet;
 import com.talhaatif.ticketbook.repositories.UserRepository;
 import com.talhaatif.ticketbook.security.JwtUtil;
@@ -17,6 +19,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -33,6 +36,9 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private PaymentService paymentService;
+
    // for Encrypting user password
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -40,11 +46,33 @@ public class UserService {
 
 
     //--------------- Ticket Section
-    public Booking bookTickets(String userId, String eventId, List<String> seatNumbers, String paymentMethod){
 
+    // For wallet payments
+    public Booking bookWithWallet(String userId, String eventId, List<String> seatNumbers) {
+        return bookingService.bookWithWallet(userId, eventId, seatNumbers);
+    }
 
-        return bookingService.bookSeats(userId, eventId, seatNumbers,paymentMethod);
+    // For Stripe payments - Step 1: Create payment intent
+    public Map<String, String> createStripePaymentIntent(String userId, String eventId,
+                                                         List<String> seatNumbers) {
+        // First verify seat availability
+        // First verify seat availability and calculate amount
+        Event event = bookingService.verifySeatAvailability(eventId, seatNumbers);
+        double amount = bookingService.calculateTotal(event, seatNumbers);
 
+        // Then create payment intent
+        return paymentService.createPaymentIntent(amount, "usd", userId);
+    }
+
+    // For Stripe payments - Step 2: Confirm booking after payment
+    public Booking confirmStripeBooking(String userId, String paymentIntentId,
+                                        String eventId, List<String> seatNumbers)  {
+        return bookingService.createBookingAfterStripePayment(
+                userId,
+                eventId,
+                seatNumbers,
+                paymentService.confirmPayment(paymentIntentId).getAmount() / 100.0
+        );
     }
 
     public void cancelBooking(String userId, String bookingId){

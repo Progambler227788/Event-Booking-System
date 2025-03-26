@@ -50,22 +50,69 @@ public class UserController {
     // --------------------Booking Section---------------------------------
 
     // ✅ Book Ticket (No try-catch needed since exceptions are handled globally)
-    @PostMapping("/bookTicket")
+    // For Wallet payments
+    // For Wallet payments
+    @PostMapping("/book-with-wallet")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<Map<String, String>> bookTicket(@RequestParam String eventId,
-                                                          @RequestParam List<String> seatNumbers,@RequestParam String paymentMethod) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
-        String userId = userService.getUserIdByUserName(authenticatedUserName);
+    public ResponseEntity<Map<String, String>> bookWithWallet(
+            @RequestParam String eventId,
+            @RequestParam List<String> seatNumbers) {
 
-        userService.bookTickets(userId, eventId, seatNumbers, paymentMethod);
+        String userId = getAuthenticatedUserId();
+        Booking booking = userService.bookWithWallet(userId, eventId, seatNumbers);
 
-        // Broadcast seat updates to all clients
-        SeatUpdate seatUpdate = new SeatUpdate(eventId, seatNumbers, "BOOKED");
-        messagingTemplate.convertAndSend("/topic/seats", seatUpdate);
+        broadcastSeatUpdate(eventId, seatNumbers, "BOOKED");
+        return ResponseEntity.ok(Map.of(
+                "message", "Ticket booked successfully",
+                "bookingId", booking.getId()
+        ));
+    }
 
+    // For Stripe payments - Step 1
+    @PostMapping("/create-stripe-intent")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> createStripePaymentIntent(
+            @RequestParam String eventId,
+            @RequestParam List<String> seatNumbers) {
 
-        return ResponseEntity.ok(Map.of("message", "Ticket booked successfully"));
+        String userId = getAuthenticatedUserId();
+        Map<String, String> paymentIntent = userService.createStripePaymentIntent(
+                userId, eventId, seatNumbers
+        );
+
+        return ResponseEntity.ok(paymentIntent);
+    }
+
+    // For Stripe payments - Step 2
+    @PostMapping("/confirm-stripe-booking")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> confirmStripeBooking(
+            @RequestParam String paymentIntentId,
+            @RequestParam String eventId,
+            @RequestParam List<String> seatNumbers) {
+
+        String userId = getAuthenticatedUserId();
+        Booking booking = userService.confirmStripeBooking(
+                userId, paymentIntentId, eventId, seatNumbers
+        );
+
+        broadcastSeatUpdate(eventId, seatNumbers, "BOOKED");
+        return ResponseEntity.ok(Map.of(
+                "message", "Booking confirmed successfully",
+                "bookingId", booking.getId()
+        ));
+    }
+
+    // Helper method to get user ID
+    private String getAuthenticatedUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userService.getUserIdByUserName(((UserDetails) auth.getPrincipal()).getUsername());
+    }
+
+    // Helper method to broadcast seat updates
+    private void broadcastSeatUpdate(String eventId, List<String> seatNumbers, String status) {
+        messagingTemplate.convertAndSend("/topic/seats",
+                new SeatUpdate(eventId, seatNumbers, status));
     }
 
     // ✅ Cancel Ticket

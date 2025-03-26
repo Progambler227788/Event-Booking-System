@@ -39,5 +39,22 @@ public class PaymentService {
         }
 
     }
+
+    public PaymentIntent confirmPayment(String paymentIntentId) {
+
+        try {
+            PaymentIntent intent = PaymentIntent.retrieve(paymentIntentId);
+            if (!"succeeded".equals(intent.getStatus())) {
+                throw new RuntimeException("Payment not completed");
+            }
+            return intent;
+
+        }
+
+        catch (StripeException e) {
+            throw new RuntimeException("Payment failed: " + e.getMessage());
+        }
+
+    }
 }
 

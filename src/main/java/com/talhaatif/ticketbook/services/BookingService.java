@@ -50,154 +50,131 @@ public class BookingService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public Booking bookSeats(String userId, String eventId, List<String> seatNumbers, String paymentMethod) {
-        int retryCount = 0;
-
-        while (retryCount < 3) {  // Retry mechanism for version conflicts
-            try {
-                return bookSeatsWithTransaction(userId, eventId, seatNumbers, paymentMethod);
-            } catch (OptimisticLockingFailureException e) {
-                retryCount++;
-                if (retryCount == 3) {
-                    System.out.println("❌ Booking failed due to concurrent updates. Please try again.");
-                    throw new RuntimeException("Booking failed due to concurrent updates. Please try again.");
-                }
-            }
-        }
-        throw new RuntimeException("Booking failed.");
-    }
-
+    // For wallet payments only
     @Transactional(rollbackFor = Exception.class)
-    private Booking bookSeatsWithTransaction(String userId, String eventId, List<String> seatNumbers, String paymentMethod) {
-        // 1️⃣ Fetch latest Event (with optimistic locking)
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResourceMissingException("Event not found"));
-
-        // 2️⃣ Fetch User
+    public Booking bookWithWallet(String userId, String eventId, List<String> seatNumbers) {
+        // 1. Verify seats and user
+        Event event = verifySeatAvailability(eventId, seatNumbers);
         User user = userRepository.findById(new ObjectId(userId))
                 .orElseThrow(() -> new ResourceMissingException("User not found"));
 
-        // 3️⃣ Find Requested Seats
-        List<Seat> selectedSeats = event.getSeats().stream()
-                .filter(seat -> seatNumbers.contains(seat.getSeatNumber()) && seat.isAvailable())
-                .collect(Collectors.toList());
+        // 2. Calculate total
+        double totalAmount = calculateTotal(event, seatNumbers);
 
-        if (selectedSeats.size() < seatNumbers.size()) {
-            throw new RuntimeException("Some seats are already booked. Please choose different ones.");
-        }
-
-        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
-            throw new RuntimeException("Payment method cannot be null or empty");
-        }
-
-
-        // 5️⃣ Calculate Total Price
-        double totalAmount = selectedSeats.stream().mapToDouble(Seat::getPrice).sum();
-
+        // 3. Process wallet payment
         if (user.getWallet().getBalance() < totalAmount) {
             throw new RuntimeException("Insufficient balance in wallet");
         }
+        user.getWallet().setBalance(user.getWallet().getBalance() - totalAmount);
+        userRepository.save(user);
 
-        // 6️⃣ Process Payment
-        Payment payment = handlePayment(userId, user, totalAmount, paymentMethod);
+        // 4. Create payment record
+        Payment payment = Payment.builder()
+                .amount(totalAmount)
+                .method("WALLET")
+                .status(PaymentStatus.SUCCESS)
+                .timestamp(new Date())
+                .userId(userId)
+                .build();
+
+        // 5. Mark seats as booked
+        markSeatsAsBooked(eventId, seatNumbers);
+
+        // 6. Create booking
+        return createBooking(userId, eventId, seatNumbers, payment);
+    }
+
+    // For Stripe payments (after successful payment)
+    @Transactional(rollbackFor = Exception.class)
+    public Booking createBookingAfterStripePayment(
+            String userId,
+            String eventId,
+            List<String> seatNumbers,
+            double amountPaid) {
+
+        // 1. Verify seats
+        verifySeatAvailability(eventId, seatNumbers);
+
+        // 2. Create payment record
+        Payment payment = Payment.builder()
+                .amount(amountPaid)
+                .method("STRIPE")
+                .status(PaymentStatus.SUCCESS)
+                .timestamp(new Date())
+                .userId(userId)
+                .build();
+
+        // 3. Mark seats as booked
+        markSeatsAsBooked(eventId, seatNumbers);
+
+        // 4. Create booking
+        return createBooking(userId, eventId, seatNumbers, payment);
+    }
+
+    // Shared helper methods
+    public Event verifySeatAvailability(String eventId, List<String> seatNumbers) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceMissingException("Event not found"));
+
+        long availableSeats = event.getSeats().stream()
+                .filter(seat -> seatNumbers.contains(seat.getSeatNumber()) && seat.isAvailable())
+                .count();
+
+        if (availableSeats < seatNumbers.size()) {
+            throw new RuntimeException("Some seats are already booked");
+        }
+
+        return event;
+    }
 
 
-        // 4️⃣ Mark Seats as Booked (Atomic Update)
+    public double calculateTotal(Event event, List<String> seatNumbers) {
+        return event.getSeats().stream()
+                .filter(seat -> seatNumbers.contains(seat.getSeatNumber()))
+                .mapToDouble(Seat::getPrice)
+                .sum();
+    }
+
+    private void markSeatsAsBooked(String eventId, List<String> seatNumbers) {
         Query query = new Query(Criteria.where("_id").is(eventId)
                 .and("seats.seatNumber").in(seatNumbers)
                 .and("seats.isAvailable").is(true));
 
         Update update = new Update();
-
-        // Use unique array filter names to avoid conflicts
         for (int i = 0; i < seatNumbers.size(); i++) {
-            String seatNumber = seatNumbers.get(i);
-            System.out.println(Thread.currentThread().getName() + " Processing seat: " + seatNumber);
-            String filterName = "elem" + i; // Unique filter name for each seat
             update.set("seats.$[elem" + i + "].isAvailable", false)
                     .set("seats.$[elem" + i + "].version", 1)
                     .filterArray(Criteria.where("elem" + i + ".seatNumber").is(seatNumbers.get(i)));
         }
-
-        // Increment totalBookedSeats atomically
         update.inc("totalBookedSeats", seatNumbers.size());
 
-        // Execute the update
         UpdateResult result = mongoTemplate.updateFirst(query, update, Event.class);
-
         if (result.getModifiedCount() == 0) {
-            throw new RuntimeException("Failed to book seats. Please try again.");
+            throw new RuntimeException("Failed to book seats");
         }
-
-
-
-        // 7️⃣ Save User Wallet After Payment
-        userRepository.save(user);
-
-        // 8️⃣ Create Booking
-        Booking booking = Booking.builder()
-                .userId(userId)
-                .eventId(eventId)
-                .seats(selectedSeats)
-                .status(BookingStatus.CONFIRMED)
-                .payment(payment)
-                .createdAt(new Date())
-                .build();
-
-        return bookingRepository.save(booking);
     }
-    // handle payment
-    Payment handlePayment(String userId, User user, double totalAmount, String paymentMethod){
-        // Log the payment method for debugging
-        System.out.println("Processing payment with method: " + paymentMethod);
 
-        // Validate payment method
+    private Booking createBooking(
+            String userId,
+            String eventId,
+            List<String> seatNumbers,
+            Payment payment) {
 
+        Event event = eventRepository.findById(eventId).orElseThrow();
+        List<Seat> selectedSeats = event.getSeats().stream()
+                .filter(seat -> seatNumbers.contains(seat.getSeatNumber()))
+                .collect(Collectors.toList());
 
-        System.out.println("Equality result " + "WALLET".equalsIgnoreCase(paymentMethod));
-        System.out.println("Equality result " + "STRIPE ".equalsIgnoreCase(paymentMethod));
-
-        if ("WALLET".equalsIgnoreCase(paymentMethod)) {
-
-            // Check if user has enough balance in wallet
-            if (user.getWallet().getBalance() < totalAmount) {
-                throw new RuntimeException("Insufficient balance in wallet");
-            }
-
-            // Deduct amount from wallet
-            user.getWallet().setBalance(user.getWallet().getBalance() - totalAmount);
-
-            // Create Payment
-            return Payment.builder()
-                    .amount(totalAmount)
-                    .method("WALLET")
-                    .status(PaymentStatus.SUCCESS)
-                    .timestamp(new Date())
-                    .userId(userId)
-                    .build();
-
-        } else if ("STRIPE".equalsIgnoreCase(paymentMethod)) {
-            // Handle Stripe Payment
-            try {
-                // Create a PaymentIntent with Stripe
-                Map<String, String> paymentIntent = paymentService.createPaymentIntent(totalAmount, "usd", userId);
-
-                // Create Payment
-                return Payment.builder()
-                        .amount(totalAmount)
-                        .method("STRIPE")
-                        .status(PaymentStatus.SUCCESS)
-                        .timestamp(new Date())
+        return bookingRepository.save(
+                Booking.builder()
                         .userId(userId)
-                        .build();
-
-            } catch (Exception e) {
-                throw new RuntimeException("Payment failed: " + e.getMessage());
-            }
-        } else {
-            throw new RuntimeException("Invalid payment method");
-        }
-
+                        .eventId(eventId)
+                        .seats(selectedSeats)
+                        .status(BookingStatus.CONFIRMED)
+                        .payment(payment)
+                        .createdAt(new Date())
+                        .build()
+        );
     }
 
     // ✅ Get all bookings for a user

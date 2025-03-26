@@ -13,6 +13,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+// I added these comments so that I don't forget my codebase XD :)
+// UserDetailsServiceImpl is only responsible for fetching authentication-related user details.
+// UserDetailsService is a Spring Security interface that provides a method loadUserByUsername(String username)
+
+
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService
 {
