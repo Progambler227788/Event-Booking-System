@@ -19,6 +19,8 @@ public class Booking {
     private String id;
     private String userId;
     private String eventId;
+    private String eventName;
+    private Date eventDate;
     private List<Seat> seats;
     private BookingStatus status; // ENUM: PENDING, CONFIRMED, CANCELLED
     private Payment payment;
