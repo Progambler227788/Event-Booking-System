@@ -146,6 +146,7 @@ public class UserController {
 
 
    // Filter all bookings of a user by size and page
+
     @GetMapping("/filter")
     public ResponseEntity<?> filterBookings(
             @RequestParam(required = false) Integer month,
