@@ -3,6 +3,7 @@ package com.talhaatif.ticketbook.services;
 import com.stripe.exception.StripeException;
 import com.talhaatif.ticketbook.dto.UpdateRequest;
 import com.talhaatif.ticketbook.dto.UserBalance;
+import com.talhaatif.ticketbook.dto.UserInformation;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
 import com.talhaatif.ticketbook.entities.events.Event;
@@ -41,8 +42,6 @@ public class UserService {
 
    // for Encrypting user password
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-
 
 
     //--------------- Ticket Section
@@ -91,6 +90,8 @@ public class UserService {
     }
 
 
+
+
     //----------------- User section
 
     public void saveNewUser(User object){
@@ -132,6 +133,7 @@ public class UserService {
     }
 
 
+
     public List<User> getAllUsers()
     {
         return userRepository.findAll();
@@ -161,6 +163,10 @@ public class UserService {
             existingUser.setPhoneNumber(updateRequest.getPhoneNumber());
         }
 
+        if (StringUtils.hasText(updateRequest.getLocation())) {
+            existingUser.setLocation(updateRequest.getLocation());
+        }
+
         userRepository.save(existingUser);
 
         return credentialsChanged
@@ -169,8 +175,32 @@ public class UserService {
     }
 
 
-    public Optional<User> getUserById(ObjectId id){
-        return  userRepository.findById(id);
+    public UserInformation getUserById(ObjectId id){
+
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()){
+            UserInformation userInformation = new UserInformation();
+            userInformation.setId(user.get().getId());
+            userInformation.setUserName(user.get().getUsername());
+            userInformation.setEmail(user.get().getEmail());
+            userInformation.setPhoneNumber(user.get().getPhoneNumber());
+           userInformation.setWallet(user.get().getWallet());
+            userInformation.setLocation(user.get().getLocation());
+            return userInformation;
+
+        }
+        // no user found
+        return null;
+    }
+
+
+    public User findByUserName(String userName){
+        return userRepository.findByUserName(userName);
+    }
+
+    public String getUserIdByUserName(String userName) {
+        User user = userRepository.findByUserName(userName);
+        return user != null ? user.getId() : null;
     }
 
     public void deleteUserById(ObjectId id){
@@ -181,14 +211,6 @@ public class UserService {
         userRepository.deleteByUserName(username);
     }
 
-    public User findByUserName(String userName){
-        return userRepository.findByUserName(userName);
-    }
-
-    public String getUserIdByUserName(String userName) {
-        User user = userRepository.findByUserName(userName);
-        return user != null ? user.getId() : null;
-    }
 
     // ---------------Wallet section
 

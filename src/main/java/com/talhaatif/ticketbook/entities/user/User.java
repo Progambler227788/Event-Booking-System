@@ -21,6 +21,7 @@ public class User implements UserDetails {
     private String userName;
     private String email;
     private String password;
+    private String location;
     private boolean gender; // true for Male, false for Female
     private String phoneNumber; // +92 so on
     private List<String> role; // ADMIN, ORGANIZER, CUSTOMER

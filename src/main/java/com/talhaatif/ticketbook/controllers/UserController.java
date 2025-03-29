@@ -1,15 +1,18 @@
 package com.talhaatif.ticketbook.controllers;
 
 import com.talhaatif.ticketbook.dto.SeatUpdate;
+import com.talhaatif.ticketbook.dto.UserInformation;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
 import com.talhaatif.ticketbook.entities.events.Category;
+import com.talhaatif.ticketbook.entities.user.User;
 import com.talhaatif.ticketbook.services.EventService;
 import com.talhaatif.ticketbook.services.UserService;
 import com.talhaatif.ticketbook.services.BookingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/user/profile")// Base URL
@@ -46,6 +50,22 @@ public class UserController {
     public String userProfile() {
         return "Welcome to User Profile";
     }
+
+    @GetMapping("/details")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> getUserById() {
+
+        String userId = getAuthenticatedUserId();
+        UserInformation fetchedUser = userService.getUserById(new ObjectId(userId));
+
+        // return not found
+        if (fetchedUser==null ) {
+            return ResponseEntity.notFound().build();
+        }
+        // return user details if found
+        return ResponseEntity.ok(fetchedUser);
+    }
+
 
     // --------------------Booking Section---------------------------------
 
