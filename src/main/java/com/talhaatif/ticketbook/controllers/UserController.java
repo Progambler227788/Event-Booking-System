@@ -1,6 +1,7 @@
 package com.talhaatif.ticketbook.controllers;
 
 import com.talhaatif.ticketbook.dto.SeatUpdate;
+import com.talhaatif.ticketbook.dto.UpcomingEvents;
 import com.talhaatif.ticketbook.dto.UserInformation;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
@@ -194,7 +195,16 @@ public class UserController {
         System.out.println("Fetching event by ID...");
 
         return ResponseEntity.ok(eventService.getEventById(eventId));
+
     }
+
+    @GetMapping("/events/upcomingEvents")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<List<UpcomingEvents>> fetchAllEvent() {
+        System.out.println("Fetching all events...");
+        return ResponseEntity.ok(eventService.getAllUpcomingEvents());
+    }
+
 
     @GetMapping("/events/trendingEvents")
     @PreAuthorize("hasAuthority('ROLE_USER')")
@@ -202,6 +212,7 @@ public class UserController {
         System.out.println("Fetching trending events...");
         return ResponseEntity.ok(eventService.getTrendingEvents());
     }
+
 
 
     // 🔍 Search events by location with pagination

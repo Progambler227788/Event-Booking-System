@@ -1,6 +1,7 @@
 package com.talhaatif.ticketbook.services;
 
 import com.talhaatif.ticketbook.dto.SimplifiedTrendingEvent;
+import com.talhaatif.ticketbook.dto.UpcomingEvents;
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.events.Seat;
@@ -43,6 +44,19 @@ public class EventService {
 
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
+    }
+
+    public List<UpcomingEvents> getAllUpcomingEvents() {
+        return eventRepository.findAll().stream().map(event ->
+                UpcomingEvents.builder()
+                        .id(event.getId())
+                        .title(event.getTitle())
+                        .category(event.getCategory().toString())
+                        .imageUrl(event.getImageUrl())
+                        .location(event.getLocation())
+                        .dateTime(event.getDateTime())
+                        .build()
+        ).collect(Collectors.toList());
     }
 
     // ✅ Create New Event (Admin Only)
