@@ -332,7 +332,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Currency updated for User account"));
     }
 
-    @PutMapping("/wallet/updateLocation")
+    @PutMapping("/updateLocation")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Map<String, String>> updateLocation(@RequestParam String location){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
