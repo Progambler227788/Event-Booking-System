@@ -1,6 +1,7 @@
 package com.talhaatif.ticketbook.services;
 
 import com.stripe.exception.StripeException;
+import com.talhaatif.ticketbook.dto.StripeIntentResponse;
 import com.talhaatif.ticketbook.dto.UpdateRequest;
 import com.talhaatif.ticketbook.dto.UserBalance;
 import com.talhaatif.ticketbook.dto.UserInformation;
@@ -52,8 +53,8 @@ public class UserService {
     }
 
     // For Stripe payments - Step 1: Create payment intent
-    public Map<String, String> createStripePaymentIntent(String userId, String eventId,
-                                                         List<String> seatNumbers) {
+    public StripeIntentResponse createStripePaymentIntent(String userId, String eventId,
+                                                          List<String> seatNumbers) {
         // First verify seat availability
         // First verify seat availability and calculate amount
         Event event = bookingService.verifySeatAvailability(eventId, seatNumbers);

@@ -1,6 +1,7 @@
 package com.talhaatif.ticketbook.controllers;
 
 import com.talhaatif.ticketbook.dto.SeatUpdate;
+import com.talhaatif.ticketbook.dto.StripeIntentResponse;
 import com.talhaatif.ticketbook.dto.UpcomingEvents;
 import com.talhaatif.ticketbook.dto.UserInformation;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
@@ -95,16 +96,16 @@ public class UserController {
     // For Stripe payments - Step 1
     @PostMapping("/create-stripe-intent")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<Map<String, String>> createStripePaymentIntent(
+    public ResponseEntity<StripeIntentResponse> createStripePaymentIntent(
             @RequestParam String eventId,
             @RequestParam List<String> seatNumbers) {
 
         String userId = getAuthenticatedUserId();
-        Map<String, String> paymentIntent = userService.createStripePaymentIntent(
+        StripeIntentResponse response = userService.createStripePaymentIntent(
                 userId, eventId, seatNumbers
         );
 
-        return ResponseEntity.ok(paymentIntent);
+        return ResponseEntity.ok(response);
     }
 
     // For Stripe payments - Step 2
@@ -324,7 +325,7 @@ public class UserController {
 
     @PutMapping("/wallet/updateCurrency")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<Map<String, String>> deductBalance(@RequestParam String currencyType){
+    public ResponseEntity<Map<String, String>> updateCurrency(@RequestParam String currencyType){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
         String userId = userService.getUserIdByUserName(authenticatedUserName);

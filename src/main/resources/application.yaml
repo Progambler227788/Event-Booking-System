@@ -20,9 +20,10 @@ spring:
 secret:
   key: ${SECRET_KEY}
 stripe:
+  publishable:
+    key: ${STRIPE_PUBLISHABLE_KEY}
   api:
     key: ${STRIPE_SECRET}
-    secret:  ${STRIPE_API}
 springdoc:
   api-docs:
     path: /v3/api-docs
