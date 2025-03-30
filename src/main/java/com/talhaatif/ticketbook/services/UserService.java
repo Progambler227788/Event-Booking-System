@@ -164,9 +164,6 @@ public class UserService {
             existingUser.setPhoneNumber(updateRequest.getPhoneNumber());
         }
 
-        if (StringUtils.hasText(updateRequest.getLocation())) {
-            existingUser.setLocation(updateRequest.getLocation());
-        }
 
         userRepository.save(existingUser);
 
