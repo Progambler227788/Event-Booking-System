@@ -271,6 +271,19 @@ public class UserService {
 
     }
 
+    public void updateLocation(String userId, String location) {
+        User user = userRepository.findById(new ObjectId(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String userLocation = user.getLocation();
+        // if currency is not same then save else do nothing
+        if ( !userLocation.equalsIgnoreCase(location) ) {
+            user.setLocation(location);
+            userRepository.save(user);
+        }
+
+    }
+
 
 
 }

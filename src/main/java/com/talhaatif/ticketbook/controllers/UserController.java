@@ -173,7 +173,6 @@ public class UserController {
     public ResponseEntity<?> filterBookings(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) String category,
             @RequestParam(required = false) BookingStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -331,6 +330,16 @@ public class UserController {
         String userId = userService.getUserIdByUserName(authenticatedUserName);
         userService.updateCurrencyType(userId,currencyType);
         return ResponseEntity.ok(Map.of("message", "Currency updated for User account"));
+    }
+
+    @PutMapping("/wallet/updateLocation")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<Map<String, String>> updateLocation(@RequestParam String location){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String userId = userService.getUserIdByUserName(authenticatedUserName);
+        userService.updateLocation(userId,location);
+        return ResponseEntity.ok(Map.of("message", "Location updated for User account"));
     }
 
 }
