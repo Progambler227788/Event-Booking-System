@@ -229,7 +229,7 @@ public class UserController {
     @GetMapping("/events/searchByCategory")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<?> searchEventsByCategory(
-            @RequestParam Category category,
+            @RequestParam String category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(eventService.searchEventsByCategory(category, page, size));

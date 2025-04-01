@@ -135,8 +135,9 @@ public class EventService {
     }
 
     // 🔍 Search events by category with pagination
-    public List<Event> searchEventsByCategory(Category category, int page, int size) {
-        return eventRepositoryImpl.searchEventsByCategory(category, page, size);
+    public List<Event> searchEventsByCategory(String category, int page, int size) {
+        Category eventCategory = Category.valueOf(category.toUpperCase());
+        return eventRepositoryImpl.searchEventsByCategory(eventCategory, page, size);
     }
 
     // 🔍 Search events by date range with pagination
