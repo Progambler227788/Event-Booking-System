@@ -137,9 +137,6 @@ $ heroku open
 ## Contributing 🤝
 Feel free to fork this project, create a feature branch, and submit a pull request. Contributions are always welcome!
 
-## License 📜
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
-
 ---
 
 Happy Coding! 🚀
