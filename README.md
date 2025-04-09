@@ -1,3 +1,6 @@
+Here's your updated README with the deployment link changed to Koyeb:
+
+```markdown
 # Ticket Booking API 🎟️
 
 ## Overview
@@ -18,15 +21,15 @@ Welcome to the **Ticket Booking API**! 🚀 This API allows users to book and ma
 - ⏳ Rate limiting to prevent abuse.
 
 ## Live API URL
-The API is deployed on **Heroku** and can be accessed at:
+The API is deployed on **Koyeb** and can be accessed at:
 
-👉 **[Live API](https://tickojet-8f5e27f79912.herokuapp.com/)**
+👉 **[Live API](https://administrative-nickie-talha-atif-43eb1dd0.koyeb.app/)**
 
 ## API Documentation (Swagger)
 
 Swagger UI is enabled for API testing and documentation.
 
-👉 **[Swagger UI](https://tickojet-8f5e27f79912.herokuapp.com/swagger-ui.html)**
+👉 **[Swagger UI](https://administrative-nickie-talha-atif-43eb1dd0.koyeb.app/swagger-ui.html)**
 
 ## Tech Stack 🛠️
 - **Spring Boot** (Backend framework)
@@ -59,12 +62,6 @@ STRIPE_API=your-stripe-api-key
 ```sh
 $ mvn clean install
 $ mvn spring-boot:run
-```
-
-#### Using Docker:
-```sh
-$ docker build -t ticket-booking-api .
-$ docker run -p 8080:8080 ticket-booking-api
 ```
 
 The API will be accessible at `http://localhost:8080`
@@ -107,32 +104,18 @@ The API will be accessible at `http://localhost:8080`
 - **Role-Based Access Control (RBAC):** Users must have `ROLE_USER` or `ROLE_ADMIN` to access specific endpoints.
 - **Rate Limiting:** Protects against abuse by limiting API requests.
 
-## Deployment on Heroku 🚀
+## Deployment on Koyeb 🚀
 
-### 1. Create a Heroku App
-```sh
-$ heroku create your-app-name
-```
+### 1. Create a Koyeb Account
+Sign up at [Koyeb](https://www.koyeb.com/)
 
-### 2. Add MongoDB (Optional: If using MongoDB Atlas, skip this step)
-```sh
-$ heroku addons:create mongolab:sandbox
-```
+### 2. Create a New Service
+- Connect your GitHub repository
+- Select the appropriate branch
+- Configure environment variables
 
-### 3. Set Environment Variables
-```sh
-$ heroku config:set SERVER_PORT=8080 MONGO_URI=your-mongodb-uri SECRET_KEY=your-secret-key STRIPE_SECRET=your-stripe-secret-key STRIPE_API=your-stripe-api-key
-```
-
-### 4. Deploy the Application
-```sh
-$ git push heroku main
-```
-
-### 5. Open the App
-```sh
-$ heroku open
-```
+### 3. Deploy the Application
+Koyeb will automatically build and deploy your application
 
 ## Contributing 🤝
 Feel free to fork this project, create a feature branch, and submit a pull request. Contributions are always welcome!
@@ -140,3 +123,4 @@ Feel free to fork this project, create a feature branch, and submit a pull reque
 ---
 
 Happy Coding! 🚀
+```
