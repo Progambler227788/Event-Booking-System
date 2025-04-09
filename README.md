@@ -1,6 +1,3 @@
-Here's your updated README with the deployment link changed to Koyeb:
-
-```markdown
 # Ticket Booking API 🎟️
 
 ## Overview
