@@ -35,7 +35,7 @@ import java.util.Map;
 
 // @RequestMapping is an annotation in Spring Boot
 // that is used to map HTTP requests to specific controller classes or methods.
-@Tag(name = "Auth APIS",description = "Auth related apis")
+@Tag(name = "Authentication", description = "Authentication API endpoints")
 public class AuthController {
 
     // required args constructor will provide their instances

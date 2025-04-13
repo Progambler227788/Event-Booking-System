@@ -50,7 +50,7 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceImpl(); // Ensure UserInfoService implements UserDetailsService
+        return new UserDetailsServiceImpl(); // Return the user details service
     }
 
 
