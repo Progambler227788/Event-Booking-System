@@ -1,7 +1,8 @@
 # Ticket Booking API 🎟️
 
 ## Overview
-Welcome to the **Ticket Booking API**! 🚀 This API allows users to book and manage event tickets securely using **JWT authentication** and is built using **Spring Boot** with **MongoDB** as the database.
+Welcome to the **Ticket Booking API**! 🚀 This API allows users to book and manage event tickets securely using **JWT authentication** and is built using **Spring Boot** with **MongoDB** as the database, **Redis** as a cache, **Stripe**
+as a gateway
 
 ## Features
 
@@ -16,6 +17,7 @@ Welcome to the **Ticket Booking API**! 🚀 This API allows users to book and ma
 - 🔍 Filter events by various criteria (date, category, rating, etc.).
 - 🔐 Secure authentication with JWT.
 - ⏳ Rate limiting to prevent abuse.
+- 🔔 Can receive notification on booking the ticket
 
 ## Live API URL
 
@@ -48,9 +50,12 @@ Create a `.env` file in the root directory and set the required values:
 ```
 SERVER_PORT=8080
 MONGO_URI=mongodb+srv://your-username:your-password@cluster.mongodb.net/ticketdb
-SECRET_KEY=your-secret-key
+SECRET_KEY=your-secret-key-for-jwt
 STRIPE_SECRET=your-stripe-secret-key
 STRIPE_API=your-stripe-api-key
+REDIS_URI=your-redis-uri
+REDIS_PASS=your-redis-password
+REDIST_PORT=your-redis-port
 ```
 
 ### 3. Build & Run the Application
