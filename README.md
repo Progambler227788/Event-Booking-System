@@ -27,7 +27,7 @@ Currently it is down, will be up soon.
 
 Swagger UI is enabled for API testing and documentation.
 
-👉 **[Swagger UI](https://administrative-nickie-talha-atif-43eb1dd0.koyeb.app/swagger-ui.html)**
+👉 **[Swagger UI](localhost:8080/swagger-ui.html)**
 
 ## Tech Stack 🛠️
 - **Spring Boot** (Backend framework)
@@ -101,22 +101,23 @@ The API will be accessible at `http://localhost:8080`
 | `GET` | `/api/user/profile/events/searchByTitleOrDescription` | Search events by title or description |
 
 ### 🔔 FCM Token Registration API
-Endpoint: POST /api/user/fcm/register
-Description: Register a Firebase Cloud Messaging (FCM) token for push notifications.
 
-Request Parameters:
+| Method | Endpoint                | Description                                  |
+|--------|-------------------------|----------------------------------------------|
+| `POST` | `/api/user/fcm/register` | Register a Firebase Cloud Messaging (FCM) token for push notifications |
 
-userId (String): ID of the user
+#### Request Parameters
+| Parameter | Type   | Description          |
+|-----------|--------|----------------------|
+| userId    | String | ID of the user       |
+| token     | String | FCM device token     |
 
-token (String): FCM device token
-
-Response:
-
-200 OK: Token registered successfully
-
-400 Bad Request: userId or token is missing/invalid
-
-500 Internal Server Error: Token registration failed due to server error
+#### Response
+| Status Code | Description                                |
+|-------------|--------------------------------------------|
+| 200 OK      | Token registered successfully              |
+| 400 Bad Request | userId or token is missing/invalid     |
+| 500 Internal Server Error | Token registration failed due to server error |
 
 
 
