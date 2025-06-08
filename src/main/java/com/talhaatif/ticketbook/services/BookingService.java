@@ -1,5 +1,6 @@
 package com.talhaatif.ticketbook.services;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.mongodb.client.result.UpdateResult;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
@@ -9,10 +10,7 @@ import com.talhaatif.ticketbook.entities.payments.Payment;
 import com.talhaatif.ticketbook.entities.payments.PaymentStatus;
 import com.talhaatif.ticketbook.entities.user.User;
 import com.talhaatif.ticketbook.exceptions.ResourceMissingException;
-import com.talhaatif.ticketbook.repositories.BookingRepository;
-import com.talhaatif.ticketbook.repositories.BookingRepositoryImpl;
-import com.talhaatif.ticketbook.repositories.EventRepository;
-import com.talhaatif.ticketbook.repositories.UserRepository;
+import com.talhaatif.ticketbook.repositories.*;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +47,13 @@ public class BookingService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+
+    @Autowired
+    private DeviceTokenRepository tokenRepo;
+
+    @Autowired
+    private FcmService fcmService;
 
     // For wallet payments only
     @Transactional(rollbackFor = Exception.class)
@@ -164,6 +169,19 @@ public class BookingService {
         List<Seat> selectedSeats = event.getSeats().stream()
                 .filter(seat -> seatNumbers.contains(seat.getSeatNumber()))
                 .collect(Collectors.toList());
+
+        tokenRepo.findByUserId(userId).forEach(deviceToken -> {
+            try {
+                fcmService.sendNotification(
+                        deviceToken.getToken(),
+                        "Booking Confirmed",
+                        "Your ticket has been successfully booked!"
+                );
+            } catch (FirebaseMessagingException e) {
+                // Log error but don't block main logic
+                System.err.println("FCM failed: " + e.getMessage());
+            }
+        });
 
         return bookingRepository.save(
                 Booking.builder()

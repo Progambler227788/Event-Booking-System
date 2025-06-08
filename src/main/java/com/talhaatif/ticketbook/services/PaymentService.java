@@ -22,7 +22,7 @@ public class PaymentService {
     private String stripeApiKey;
 
 
-    @Value("${stripe.publishable.key}") // Add this to application.properties
+    @Value("${stripe.publishable.key}")
     private String stripePublishableKey;
 
     public StripeIntentResponse createPaymentIntent(double amount, String currency, String userId) {
@@ -56,7 +56,7 @@ public class PaymentService {
             // 4. Return all required data
             return new StripeIntentResponse(
                     paymentIntent.getClientSecret(),
-                    ephemeralKey.getSecret(),
+                    ephemeralKey.getSecret(), // to work for saved cards
                     customer.getId(),
                     stripePublishableKey
             );

@@ -75,9 +75,12 @@ public class AuthController {
                 String token = jwtUtil.generateToken(authRequest.getUserName(), role);
                 log.info("Generated JWT token for user: {} with role: {}", authRequest.getUserName(), role);
 
+                String userId = userService.getUserIdByUserName(authRequest.getUserName());
+
                 // Return token in a JSON object
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
+                response.put("userId", userId);
                 return ResponseEntity.ok(response);
             } else {
                 log.warn("Authentication failed for user: {}", authRequest.getUserName());

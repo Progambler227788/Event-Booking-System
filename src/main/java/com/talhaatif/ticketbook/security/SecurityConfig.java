@@ -38,6 +38,7 @@ public class SecurityConfig {
 
     private final RateLimitingFilter rateLimitingFilter;
 
+
     private final PasswordEncoder passwordEncoder;
 
 
