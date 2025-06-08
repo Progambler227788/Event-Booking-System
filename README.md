@@ -18,9 +18,8 @@ Welcome to the **Ticket Booking API**! 🚀 This API allows users to book and ma
 - ⏳ Rate limiting to prevent abuse.
 
 ## Live API URL
-The API is deployed on **Koyeb** and can be accessed at:
 
-👉 **[Live API](https://administrative-nickie-talha-atif-43eb1dd0.koyeb.app/)**
+Currently it is down, will be up soon.
 
 ## API Documentation (Swagger)
 
@@ -96,23 +95,31 @@ The API will be accessible at `http://localhost:8080`
 | `GET` | `/api/user/profile/events/searchByLocation` | Search events by location |
 | `GET` | `/api/user/profile/events/searchByTitleOrDescription` | Search events by title or description |
 
+### 🔔 FCM Token Registration API
+Endpoint: POST /api/user/fcm/register
+Description: Register a Firebase Cloud Messaging (FCM) token for push notifications.
+
+Request Parameters:
+
+userId (String): ID of the user
+
+token (String): FCM device token
+
+Response:
+
+200 OK: Token registered successfully
+
+400 Bad Request: userId or token is missing/invalid
+
+500 Internal Server Error: Token registration failed due to server error
+
+
+
 ## Security 🛡️
 - **JWT Authentication:** Secure endpoints require a valid JWT token.
 - **Role-Based Access Control (RBAC):** Users must have `ROLE_USER` or `ROLE_ADMIN` to access specific endpoints.
 - **Rate Limiting:** Protects against abuse by limiting API requests.
 
-## Deployment on Koyeb 🚀
-
-### 1. Create a Koyeb Account
-Sign up at [Koyeb](https://www.koyeb.com/)
-
-### 2. Create a New Service
-- Connect your GitHub repository
-- Select the appropriate branch
-- Configure environment variables
-
-### 3. Deploy the Application
-Koyeb will automatically build and deploy your application
 
 ## Contributing 🤝
 Feel free to fork this project, create a feature branch, and submit a pull request. Contributions are always welcome!
