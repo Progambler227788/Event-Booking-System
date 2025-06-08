@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/user/fcm")
 @Slf4j
@@ -27,11 +30,16 @@ public class FcmController {
         }
 
         try {
-            DeviceToken deviceToken = new DeviceToken();
-            deviceToken.setUserId(userId);
-            deviceToken.setToken(token);
-            deviceTokenRepository.save(deviceToken);
 
+            List<DeviceToken> existingTokens = deviceTokenRepository.findByUserId(userId);
+
+            if (existingTokens.isEmpty()) {
+                DeviceToken deviceToken = new DeviceToken();
+                deviceToken.setUserId(userId);
+                deviceToken.setToken(token);
+                deviceTokenRepository.save(deviceToken);
+
+            }
             log.info("FCM token registered successfully.");
             return ResponseEntity.ok("Token registered successfully");
 
