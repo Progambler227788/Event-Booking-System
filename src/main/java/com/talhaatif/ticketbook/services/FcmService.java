@@ -18,6 +18,8 @@ public class FcmService {
         Message message = Message.builder()
                 .setToken(targetToken)
                 .setNotification(notification)
+                .putData("title", title)
+                .putData("body", body)
                 .build();
 
         FirebaseMessaging.getInstance().send(message);

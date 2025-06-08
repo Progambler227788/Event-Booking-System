@@ -159,6 +159,7 @@ public class BookingService {
         }
     }
 
+
     private Booking createBooking(
             String userId,
             String eventId,
@@ -177,11 +178,14 @@ public class BookingService {
                         "Booking Confirmed",
                         "Your ticket has been successfully booked!"
                 );
+                log.info("Notification sent to user: {}", userId);
             } catch (FirebaseMessagingException e) {
                 // Log error but don't block main logic
-                System.err.println("FCM failed: " + e.getMessage());
+                log.error("Failed to send notification", e);
             }
         });
+
+        log.info("Booking confirmed for user: {}", userId);
 
         return bookingRepository.save(
                 Booking.builder()
