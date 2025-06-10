@@ -11,19 +11,18 @@ import com.talhaatif.ticketbook.entities.payments.PaymentStatus;
 import com.talhaatif.ticketbook.entities.user.User;
 import com.talhaatif.ticketbook.exceptions.ResourceMissingException;
 import com.talhaatif.ticketbook.repositories.*;
+import com.talhaatif.ticketbook.repositories.impl.BookingRepositoryImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,7 +30,7 @@ import java.util.stream.Collectors;
 public class BookingService {
 
     @Autowired
-    private  BookingRepositoryImpl bookingRepositoryImpl;
+    private BookingRepositoryImpl bookingRepositoryImpl;
 
     @Autowired
     private EventRepository eventRepository;
@@ -54,6 +53,11 @@ public class BookingService {
 
     @Autowired
     private FcmService fcmService;
+
+    @Autowired
+    private QrService qrService;
+
+
 
     // For wallet payments only
     @Transactional(rollbackFor = Exception.class)
@@ -231,12 +235,33 @@ public class BookingService {
 
 
 
-    public Booking getBookingById(String bookingId){
+    public Booking getBookingById(String bookingId)
+    {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceMissingException("Booking not found with ID: " + bookingId));
 
         return booking;
     }
+
+
+    public Booking findByQrCode(String qrPayLoad) {
+         return qrService.findByQrCode(qrPayLoad);
+    }
+
+    public void saveBooking(Booking booking) {
+        bookingRepository.save(booking);
+    }
+
+
+    public void ensureQrPayloadExists(Booking booking) {
+       qrService.ensureQrPayloadExists(booking);
+    }
+
+    public boolean isBookingBelongsToUser(String bookingId, String userId) {
+        return qrService.isBookingBelongsToUser(bookingId, userId);
+    }
+
+
 
     // ✅ Confirm Booking (after payment)
     public Booking confirmBooking(String bookingId) {
@@ -285,5 +310,9 @@ public class BookingService {
         return  bookingRepositoryImpl.filterBookingsByUserId(month, year, status, page, size, userId);
     }
 
+    public Booking verifyAndGetBooking(String qrToken) {
+
+        return  qrService.verifyAndGetBooking(qrToken);
+    }
 }
 

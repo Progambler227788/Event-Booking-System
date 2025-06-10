@@ -1,4 +1,4 @@
-package com.talhaatif.ticketbook.repositories;
+package com.talhaatif.ticketbook.repositories.impl;
 
 import com.talhaatif.ticketbook.dto.SimplifiedTrendingEvent;
 import com.talhaatif.ticketbook.entities.events.Category;
@@ -8,9 +8,6 @@ import com.talhaatif.ticketbook.services.RedisService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;

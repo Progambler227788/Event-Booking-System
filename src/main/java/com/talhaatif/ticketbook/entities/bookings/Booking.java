@@ -25,6 +25,9 @@ public class Booking {
     private BookingStatus status; // ENUM: PENDING, CONFIRMED, CANCELLED
     private Payment payment;
     private Date createdAt;
+
+    private String qrPayload; // E.g., UUID or Signed Token
+    private boolean isCheckedIn;
 }
 
 // how to handle if user book all seats for particular event

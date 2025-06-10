@@ -5,13 +5,10 @@ import com.talhaatif.ticketbook.dto.UpcomingEvents;
 import com.talhaatif.ticketbook.entities.events.Category;
 import com.talhaatif.ticketbook.entities.events.Event;
 import com.talhaatif.ticketbook.entities.events.Seat;
-import com.talhaatif.ticketbook.entities.events.TrendingEvent;
 import com.talhaatif.ticketbook.exceptions.ResourceMissingException;
 import com.talhaatif.ticketbook.repositories.EventRepository;
-import com.talhaatif.ticketbook.repositories.EventRepositoryImpl;
-import lombok.RequiredArgsConstructor;
+import com.talhaatif.ticketbook.repositories.impl.EventRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

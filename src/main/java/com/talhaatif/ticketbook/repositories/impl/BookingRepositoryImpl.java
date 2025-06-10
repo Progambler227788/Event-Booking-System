@@ -1,7 +1,8 @@
-package com.talhaatif.ticketbook.repositories;
+package com.talhaatif.ticketbook.repositories.impl;
 
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
+import com.talhaatif.ticketbook.repositories.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -18,7 +19,7 @@ public class BookingRepositoryImpl {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    private  EventRepository eventRepository;
+    private EventRepository eventRepository;
     // filter booking for a specific user id
 
     public List<Booking> filterBookingsByUserId(Integer month, Integer year, BookingStatus status, int page, int size, String userId) {

@@ -1,13 +1,14 @@
 package com.talhaatif.ticketbook.controllers;
 
+import com.google.zxing.WriterException;
+import com.talhaatif.ticketbook.config.QRCodeGenerator;
 import com.talhaatif.ticketbook.dto.SeatUpdate;
 import com.talhaatif.ticketbook.dto.StripeIntentResponse;
 import com.talhaatif.ticketbook.dto.UpcomingEvents;
 import com.talhaatif.ticketbook.dto.UserInformation;
 import com.talhaatif.ticketbook.entities.bookings.Booking;
 import com.talhaatif.ticketbook.entities.bookings.BookingStatus;
-import com.talhaatif.ticketbook.entities.events.Category;
-import com.talhaatif.ticketbook.entities.user.User;
+import com.talhaatif.ticketbook.exceptions.*;
 import com.talhaatif.ticketbook.services.EventService;
 import com.talhaatif.ticketbook.services.UserService;
 import com.talhaatif.ticketbook.services.BookingService;
@@ -15,6 +16,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +26,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -165,9 +171,83 @@ public class UserController {
         return ResponseEntity.ok(bookingService.getBookingsByUser(userId));
     }
 
+    // ---------------- QR Code Generation for Booking -----------
+    @GetMapping("/{id}/qr")
+    public ResponseEntity<byte[]> getBookingQRCode(@PathVariable String id) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String authenticatedUserName = ((UserDetails) authentication.getPrincipal()).getUsername();
+            String userId = userService.getUserIdByUserName(authenticatedUserName);
+
+            if (!bookingService.isBookingBelongsToUser(id, userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to access this booking");
+            }
+
+            Booking booking = bookingService.getBookingById(id);
+
+            if (!booking.getStatus().equals(BookingStatus.CONFIRMED)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking is not confirmed yet");
+            }
 
 
-   // Filter all bookings of a user by size and page
+            bookingService.ensureQrPayloadExists(booking);
+
+
+
+            byte[] qrImage = QRCodeGenerator.generateQRCodeImage(booking.getQrPayload(), 300, 300);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                    .body(qrImage);
+
+        } catch (WriterException e) {
+            log.error("QR code generation failed for booking {}: {}", id, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate QR code due to encoding error");
+        } catch (IOException e) {
+            log.error("IO error during QR code generation for booking {}: {}", id, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate QR code due to IO error");
+        } catch (Exception e) {
+            log.error("Unexpected error during QR code generation for booking {}: {}", id, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate QR code");
+        }
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyQRCode(@RequestBody Map<String, String> request) {
+        try {
+            String qrToken = request.get("qrPayload");
+
+            // Service handles all verification logic
+            Booking booking = bookingService.verifyAndGetBooking(qrToken);
+
+            // Process check-in
+            booking.setCheckedIn(true);
+            bookingService.saveBooking(booking);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "SUCCESS",
+                    "message", "Check-in successful",
+                    "event", booking.getEventName(),
+                    "bookingId", booking.getId()
+            ));
+
+        } catch (ResourceMissingException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (ConflictException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+        } catch (BusinessRuleException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (Exception ex) {
+            log.error("QR verification failed", ex);
+            return ResponseEntity.internalServerError().body("Verification failed");
+        }
+    }
+
+
+    //--------------------Search Bookings Section--------------------
+
+
+    // Filter all bookings of a user by size and page
 
     @GetMapping("/filter")
     public ResponseEntity<?> filterBookings(
@@ -213,6 +293,9 @@ public class UserController {
         return ResponseEntity.ok(eventService.getTrendingEvents());
     }
 
+
+
+    //--------------------Search Events Section--------------------
 
 
     // 🔍 Search events by location with pagination
